@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vetovo — Your Pet's Digital Health Profile</title>
+<meta name="description" content="India's first pet health identity platform. Create a permanent digital health card for your pet. Never lose a vaccination certificate again.">
+<meta property="og:title" content="Vetovo — Your Pet's Digital Health Profile">
+<meta property="og:description" content="One profile. Every door open. Never lose a vaccination certificate again.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://vetovo.in">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23FF6B35'/><text y='.9em' font-size='72' x='12'>V</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --orange:#FF6B35;--orange-light:#FFF3EE;--orange-mid:#FFD4C2;--orange-dark:#E55A26;
+  --black:#0A0A0A;--grey:#6B7280;--grey-light:#F9FAFB;--border:#F0E8E3;
+  --white:#FFFFFF;--card:#FFF8F5;--red:#DC2626;--red-light:#FEF2F2;
+  --radius:14px;--radius-sm:10px;
+  --shadow:0 2px 16px rgba(255,107,53,0.08);--shadow-md:0 8px 32px rgba(255,107,53,0.14);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--black);min-height:100vh;overflow-x:hidden}
+#particle-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.45}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;background:rgba(255,255,255,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-mark{width:34px;height:34px;border-radius:10px;background:var(--orange);display:flex;align-items:center;justify-content:center}
+.logo-mark svg{width:18px;height:18px;fill:white}
+.logo-name{font-size:18px;font-weight:700;color:var(--black);letter-spacing:-0.02em}
+.logo-by{font-size:11px;color:var(--grey);font-weight:400;margin-left:2px}
+.nav-right{font-size:13px;color:var(--grey);font-weight:500}
+.nav-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--orange);margin-right:6px;animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px 60px;position:relative;z-index:1;text-align:center}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--orange);margin-bottom:24px;opacity:0;animation:fadeUp 0.7s ease 0.1s forwards}
+.hero-eyebrow-line{width:24px;height:1.5px;background:var(--orange)}
+.hero-h1{font-size:clamp(48px,7.5vw,88px);font-weight:800;line-height:1.02;letter-spacing:-0.04em;margin-bottom:24px;opacity:0;animation:fadeUp 0.7s ease 0.2s forwards}
+.hero-h1 .accent{color:var(--orange)}
+.hero-h1 .block{display:block}
+.hero-sub{font-size:clamp(15px,1.8vw,18px);color:var(--grey);line-height:1.7;max-width:480px;margin-bottom:48px;font-weight:400;opacity:0;animation:fadeUp 0.7s ease 0.3s forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.problem-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:48px;max-width:720px;width:100%;opacity:0;animation:fadeUp 0.7s ease 0.35s forwards}
+.problem-card{background:var(--white);padding:20px 22px;text-align:left;transition:background 0.2s ease;position:relative}
+.problem-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--orange);transform:scaleY(0);transform-origin:bottom;transition:transform 0.25s ease}
+.problem-card:hover{background:var(--card)}
+.problem-card:hover::before{transform:scaleY(1)}
+.problem-num{font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--orange);margin-bottom:6px}
+.problem-text{font-size:13px;font-weight:600;color:var(--black);line-height:1.4}
+.problem-sub{font-size:12px;color:var(--grey);margin-top:3px;line-height:1.4}
+.cta-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;opacity:0;animation:fadeUp 0.7s ease 0.45s forwards}
+.cta-btn{display:inline-flex;align-items:center;gap:12px;background:var(--orange);color:white;padding:16px 36px;border-radius:60px;font-size:16px;font-weight:700;font-family:'DM Sans',sans-serif;border:none;cursor:pointer;letter-spacing:-0.01em;box-shadow:0 4px 24px rgba(255,107,53,0.35);transition:all 0.25s ease}
+.cta-btn:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 10px 36px rgba(255,107,53,0.45)}
+.cta-arrow{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:13px;transition:transform 0.25s}
+.cta-btn:hover .cta-arrow{transform:translateX(3px)}
+.cta-trust{display:flex;align-items:center;gap:20px;font-size:12px;color:var(--grey);flex-wrap:wrap;justify-content:center}
+.cta-trust-item{display:flex;align-items:center;gap:5px}
+.cta-trust-check{color:var(--orange);font-weight:700;font-size:13px}
+#form-area{display:none;opacity:0;max-width:640px;margin:0 auto;padding:0 24px 80px;position:relative;z-index:1;transition:opacity 0.5s ease}
+#form-area.visible{display:block}
+#form-area.shown{opacity:1}
+.progress-wrap{margin-bottom:36px}
+.progress-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.progress-label{font-size:13px;font-weight:700;color:var(--black);letter-spacing:-0.01em}
+.progress-count{font-size:12px;color:var(--grey)}
+.progress-bar{height:3px;background:var(--border);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:var(--orange);border-radius:4px;transition:width 0.5s ease}
+.step-dots{display:flex;gap:6px;margin-top:12px}
+.step-dot{width:28px;height:4px;border-radius:4px;background:var(--border);transition:all 0.3s ease;cursor:pointer}
+.step-dot:hover{background:var(--orange-mid)}
+.step-dot.active{background:var(--orange);width:36px}
+.step-dot.done{background:var(--orange-mid)}
+.form-section{display:none}
+.form-section.active{display:block;animation:sectionIn 0.4s ease}
+@keyframes sectionIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.section-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:16px}
+.section-head{margin-bottom:24px}
+.section-label{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--orange);margin-bottom:6px}
+.section-title{font-size:20px;font-weight:700;letter-spacing:-0.02em;color:var(--black)}
+.section-desc{font-size:13px;color:var(--grey);margin-top:4px;line-height:1.5}
+.field-grid{display:grid;gap:14px}
+.field-grid.two{grid-template-columns:1fr 1fr}
+@media(max-width:540px){.field-grid.two{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12px;font-weight:600;color:var(--black);letter-spacing:0.01em}
+.field label .opt{color:var(--grey);font-weight:400;margin-left:4px}
+.field input,.field select,.field textarea{padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--grey-light);font-size:14px;font-family:'DM Sans',sans-serif;color:var(--black);outline:none;transition:all 0.2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--orange);background:var(--white);box-shadow:0 0 0 3px rgba(255,107,53,0.1)}
+.field input.err,.field select.err{border-color:var(--red);background:var(--red-light)}
+.field textarea{resize:vertical;min-height:80px;line-height:1.5}
+.field-err{font-size:11px;color:var(--red);margin-top:2px;display:none}
+.field-err.show{display:block}
+.field-note{font-size:11px;color:var(--grey);margin-top:2px}
+.upload-zone{border:1.5px dashed var(--orange-mid);border-radius:var(--radius-sm);padding:28px;text-align:center;cursor:pointer;background:var(--card);transition:all 0.2s;position:relative}
+.upload-zone:hover{border-color:var(--orange);background:var(--orange-light)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-title{font-size:13px;font-weight:600;color:var(--black);margin-bottom:3px}
+.upload-sub{font-size:11px;color:var(--grey)}
+.upload-err{font-size:11px;color:var(--red);margin-top:6px;display:none}
+.upload-err.show{display:block}
+.upload-preview{width:80px;height:80px;border-radius:10px;object-fit:cover;margin:0 auto 8px;display:none;border:2px solid var(--orange-mid)}
+.radio-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.rpill{position:relative}
+.rpill input{position:absolute;opacity:0;width:0;height:0}
+.rpill label{display:block;padding:9px 16px;border:1.5px solid var(--border);border-radius:30px;font-size:13px;font-weight:500;cursor:pointer;background:var(--grey-light);transition:all 0.2s;color:var(--black)}
+.rpill input:checked+label{border-color:var(--orange);background:var(--orange-light);color:var(--orange);font-weight:600}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--grey-light)}
+.toggle-text{font-size:14px;font-weight:500;color:var(--black)}
+.toggle{position:relative;width:42px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:var(--border);border-radius:30px;transition:0.3s;cursor:pointer}
+.toggle-track:before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:white;left:3px;top:3px;transition:0.3s;box-shadow:0 1px 4px rgba(0,0,0,0.15)}
+.toggle input:checked+.toggle-track{background:var(--orange)}
+.toggle input:checked+.toggle-track:before{transform:translateX(18px)}
+.reveal{display:none;margin-top:12px;animation:sectionIn 0.3s ease}
+.reveal.open{display:block}
+.vax-entry{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-bottom:10px;background:var(--grey-light)}
+.vax-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.vax-num{font-size:12px;font-weight:700;color:var(--orange);letter-spacing:0.05em}
+.vax-remove{background:none;border:none;cursor:pointer;font-size:16px;color:var(--grey);line-height:1;transition:color 0.2s;padding:2px}
+.vax-remove:hover{color:var(--orange)}
+.add-vax{width:100%;padding:12px;border:1.5px dashed var(--orange-mid);border-radius:var(--radius-sm);background:var(--orange-light);color:var(--orange);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;margin-top:4px}
+.add-vax:hover{background:var(--orange);color:white;border-color:var(--orange)}
+.tag-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;background:var(--orange-light);font-size:12px;font-weight:500;color:var(--orange)}
+.tag-x{cursor:pointer;font-size:14px;line-height:1}
+.tag-input-row{display:flex;gap:8px;margin-top:6px}
+.tag-input-row input{flex:1}
+.tag-add{padding:10px 14px;background:var(--orange-light);color:var(--orange);border:none;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:13px;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:all 0.2s}
+.tag-add:hover{background:var(--orange);color:white}
+.back-btn{width:100%;padding:12px;background:transparent;color:var(--grey);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;margin-top:8px}
+.back-btn:hover{background:var(--grey-light);color:var(--black)}
+.next-btn{width:100%;padding:15px;background:var(--orange);color:white;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:-0.01em;box-shadow:0 4px 16px rgba(255,107,53,0.3);transition:all 0.2s;margin-top:6px}
+.next-btn:hover{background:var(--orange-dark);transform:translateY(-1px)}
+.next-btn:disabled{background:var(--border);color:var(--grey);box-shadow:none;transform:none;cursor:not-allowed}
+.cert-wrap{margin-bottom:16px}
+.confetti-head{text-align:center;padding:16px 0 28px}
+.confetti-title{font-size:28px;font-weight:800;letter-spacing:-0.03em;margin-bottom:6px}
+.confetti-title .accent{color:var(--orange)}
+.confetti-sub{font-size:14px;color:var(--grey)}
+.certificate{border:1.5px solid var(--orange-mid);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-md)}
+.cert-top{background:var(--orange);display:flex;align-items:stretch;gap:0;overflow:hidden}
+.cert-pet-photo{width:140px;height:140px;flex-shrink:0;overflow:hidden;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:0.05em}
+.cert-pet-photo img{width:140px;height:140px;object-fit:cover;display:block}
+.cert-top-info{flex:1;padding:20px 20px;display:flex;flex-direction:column;justify-content:center}
+.cert-pet-name{font-size:24px;font-weight:800;color:white;letter-spacing:-0.02em;text-transform:capitalize}
+.cert-pet-meta{font-size:12px;color:rgba(255,255,255,0.8);margin-top:6px;line-height:1.6}
+.cert-qr-box{width:80px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;background:rgba(0,0,0,0.1);gap:4px}
+.cert-qr-box canvas{border-radius:4px;border:3px solid white}
+.cert-qr-label{font-size:8px;color:rgba(255,255,255,0.6);letter-spacing:0.06em;text-transform:uppercase;text-align:center}
+.cert-body{padding:20px 24px}
+.cert-block{margin-bottom:16px}
+.cert-block-title{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--orange);margin-bottom:8px}
+.cert-row{display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
+.cert-row:last-child{border-bottom:none}
+.cert-key{color:var(--grey);width:100px;flex-shrink:0;font-size:12px}
+.cert-val{color:var(--black);font-weight:600;flex:1}
+.vax-pill{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--orange-light);border-radius:var(--radius-sm);margin-bottom:8px}
+.vax-pill-name{font-size:13px;font-weight:600;color:var(--black)}
+.vax-pill-date{font-size:11px;color:var(--grey);margin-top:2px}
+.vax-status{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap}
+.s-valid{background:var(--orange);color:white}
+.s-due{background:#FFD93D;color:#7A6000}
+.s-overdue{background:#FF4444;color:white}
+.cert-foot{background:var(--orange-light);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--orange-mid)}
+.cert-foot-brand{font-size:14px;font-weight:800;color:var(--orange);letter-spacing:-0.02em}
+.cert-foot-id{font-size:11px;color:var(--grey);margin-top:1px}
+.cert-foot-date{font-size:11px;color:var(--grey);text-align:right}
+.dl-btn{width:100%;padding:14px;background:var(--black);color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:-0.01em;transition:all 0.2s;margin-top:14px}
+.dl-btn:hover{background:#222;transform:translateY(-1px)}
+.dl-btn.loading{opacity:0.6;cursor:not-allowed;pointer-events:none}
+.share-row{display:flex;gap:10px;margin-top:10px}
+.share-btn{flex:1;padding:12px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s}
+.s-wa{background:#25D366;color:white}
+.s-wa:hover{background:#1ab855}
+.s-copy{background:var(--border);color:var(--black)}
+.s-copy:hover{background:#D0D7DE}
+.ins-tip{padding:14px;border-radius:var(--radius-sm);background:var(--orange-light);border:1px solid var(--orange-mid);margin-top:14px}
+.ins-tip-title{font-size:12px;font-weight:700;color:var(--orange);margin-bottom:3px}
+.ins-tip-text{font-size:12px;color:var(--grey);line-height:1.5}
+.declaration-box{margin-top:16px;padding:16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--grey-light)}
+.declaration-check{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.declaration-check input[type="checkbox"]{width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--orange);cursor:pointer}
+.declaration-text{font-size:13px;color:var(--black);line-height:1.5;font-weight:500}
+.declaration-text span{color:var(--grey);font-weight:400}
+.declaration-err{font-size:12px;color:var(--red);margin-top:6px;display:none}
+.declaration-err.show{display:block}
+/* ── NEW: Cert mode selector ── */
+.cert-mode-selector{margin-bottom:20px;padding:16px;background:var(--grey-light);border-radius:var(--radius-sm);border:1.5px solid var(--border)}
+.cert-mode-label{font-size:12px;font-weight:700;color:var(--black);margin-bottom:10px}
+.cert-mode-opts{display:flex;gap:8px;flex-wrap:wrap}
+.cert-mode-pill{position:relative}
+.cert-mode-pill input{position:absolute;opacity:0;width:0;height:0}
+.cert-mode-pill label{display:block;padding:9px 16px;border:1.5px solid var(--border);border-radius:30px;font-size:13px;font-weight:500;cursor:pointer;background:var(--white);transition:all 0.2s;color:var(--black)}
+.cert-mode-pill input:checked+label{border-color:var(--orange);background:var(--orange-light);color:var(--orange);font-weight:600}
+.per-vax-cert-zone{margin-top:10px;padding:12px;border:1.5px dashed var(--orange-mid);border-radius:var(--radius-sm);background:var(--card)}
+.per-vax-cert-label{font-size:11px;font-weight:600;color:var(--orange);margin-bottom:6px;letter-spacing:0.05em;text-transform:uppercase}
+/* ── NEW: Download success ── */
+.dl-success{display:none;margin-top:12px;padding:16px;background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:var(--radius-sm);text-align:center;animation:sectionIn 0.4s ease}
+.dl-success.show{display:block}
+.dl-success-icon{font-size:28px;margin-bottom:6px}
+.dl-success-text{font-size:15px;font-weight:700;color:#166534}
+.dl-success-sub{font-size:12px;color:#166534;margin-top:4px}
+.dl-success-hint{font-size:11px;color:#166534;margin-top:8px;padding:8px;background:rgba(22,101,52,0.08);border-radius:6px}
+.no-due-row{display:flex;align-items:center;gap:8px;margin-top:6px;padding:8px 10px;background:var(--orange-light);border-radius:var(--radius-sm);border:1px solid var(--orange-mid)}
+.no-due-row input[type="checkbox"]{width:15px;height:15px;accent-color:var(--orange);flex-shrink:0;cursor:pointer}
+.no-due-row label{font-size:12px;font-weight:500;color:var(--black);cursor:pointer}
+.s-complete{background:#166534;color:white}
+@media(max-width:768px){.problem-strip{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){nav{padding:0 20px}.problem-strip{grid-template-columns:1fr 1fr}.section-card{padding:18px}.share-row{flex-direction:column}.cert-top{flex-wrap:wrap}}
+@media print{#particle-canvas,nav,.cta-wrap,.problem-strip,.back-btn,.next-btn,.dl-btn,.share-row,.ins-tip,.dl-success{display:none!important}#form-area{padding:0}#s8{display:block!important}.certificate{box-shadow:none;border:1px solid #ccc}}
+</style>
+</head>
+<body>
+<canvas id="particle-canvas"></canvas>
+<nav>
+  <a href="#" class="logo">
+    <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg></div>
+    <div><div class="logo-name">Vetovo <span class="logo-by">by Animitr</span></div></div>
+  </a>
+  <div class="nav-right"><span class="nav-dot"></span>India's Pet Health Platform</div>
+</nav>
+
+<section class="hero" id="hero">
+  <div class="hero-eyebrow"><div class="hero-eyebrow-line"></div>India's first pet health identity<div class="hero-eyebrow-line"></div></div>
+  <h1 class="hero-h1"><span class="block">One profile.</span><span class="block accent">Every door open.</span></h1>
+  <p class="hero-sub">Never lose a vaccination certificate again. Never get turned away at boarding. Never miss a booster. One digital profile, everywhere, forever.</p>
+  <div class="problem-strip">
+    <div class="problem-card"><div class="problem-num">01</div><div class="problem-text">Lost certificates</div><div class="problem-sub">Permanent digital backup</div></div>
+    <div class="problem-card"><div class="problem-num">02</div><div class="problem-text">City change</div><div class="problem-sub">Records follow your pet</div></div>
+    <div class="problem-card"><div class="problem-num">03</div><div class="problem-text">Missed boosters</div><div class="problem-sub">WhatsApp reminders</div></div>
+    <div class="problem-card"><div class="problem-num">04</div><div class="problem-text">Boarding proof</div><div class="problem-sub">One QR scan, done</div></div>
+    <div class="problem-card"><div class="problem-num">05</div><div class="problem-text">RWA documents</div><div class="problem-sub">Share in seconds</div></div>
+    <div class="problem-card"><div class="problem-num">06</div><div class="problem-text">Insurance proof</div><div class="problem-sub">Auto-filled records</div></div>
+  </div>
+  <div class="cta-wrap">
+    <button class="cta-btn" onclick="startForm()">Create your pet's health card<div class="cta-arrow">&#8594;</div></button>
+    <div class="cta-trust">
+      <div class="cta-trust-item"><span class="cta-trust-check">&#10003;</span> Free forever</div>
+      <div class="cta-trust-item"><span class="cta-trust-check">&#10003;</span> No app needed</div>
+      <div class="cta-trust-item"><span class="cta-trust-check">&#10003;</span> Accepted at 200+ facilities</div>
+    </div>
+  </div>
+</section>
+
+<main id="form-area">
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <div class="progress-label" id="pLabel">Pet Identity</div>
+      <div class="progress-count" id="pCount">1 / 8</div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="pFill" style="width:12.5%"></div></div>
+    <div class="step-dots" id="stepDots"></div>
+  </div>
+
+  <!-- S1 PET IDENTITY -->
+  <div class="form-section active" id="s1">
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-label">Step 01</div>
+        <div class="section-title">Your pet's identity</div>
+        <div class="section-desc">Basic details that appear on the health card</div>
+      </div>
+      <div class="field-grid" style="margin-bottom:16px">
+        <div class="field">
+          <label>Pet photo *</label>
+          <div class="upload-zone" id="petPhotoZone">
+            <img class="upload-preview" id="petPhotoPreview" src="" alt="Pet photo preview">
+            <input type="file" accept="image/jpeg,image/png,image/webp" id="petPhotoInput" onchange="handlePhotoUpload(this,'petPhotoPreview','petPhotoZone','photoErr')">
+            <div class="upload-title">Upload pet photo</div>
+            <div class="upload-sub">Required — JPG or PNG, max 10MB</div>
+            <div class="upload-err" id="photoErr"></div>
+          </div>
+        </div>
+        <div class="declaration-box" style="margin-top:0">
+          <label class="declaration-check">
+            <input type="checkbox" id="petPhotoDecl" onchange="v1()">
+            <div class="declaration-text">I confirm this is a genuine, recent photo of my pet <span>— not a stock image or another animal</span></div>
+          </label>
+          <div class="declaration-err" id="petPhotoDeclErr">Please confirm this is a genuine photo of your pet</div>
+        </div>
+      </div>
+      <div class="field-grid two">
+        <div class="field"><label>Pet name *</label><input type="text" id="petName" maxlength="50" placeholder="e.g. Bruno" oninput="v1()" autocomplete="off"><div class="field-err" id="petNameErr">Please enter your pet's name</div></div>
+        <div class="field"><label>Species *</label><select id="petSpecies" onchange="v1()"><option value="">Select</option><option>Dog</option><option>Cat</option><option>Bird</option><option>Rabbit</option><option>Other</option></select><div class="field-err" id="petSpeciesErr">Please select a species</div></div>
+        <div class="field"><label>Breed *</label><input type="text" id="petBreed" maxlength="60" placeholder="e.g. Labrador" oninput="v1()" autocomplete="off"><div class="field-err" id="petBreedErr">Please enter the breed</div></div>
+        <div class="field"><label>Date of birth <span class="opt">(optional)</span></label><input type="date" id="petDob" min="2000-01-01" max="2050-12-31" onchange="validateSingleDate(this)"></div>
+        <div class="field"><label>Gender *</label><div class="radio-row"><div class="rpill"><input type="radio" name="pg" id="gM" value="Male" onchange="v1()"><label for="gM">Male</label></div><div class="rpill"><input type="radio" name="pg" id="gF" value="Female" onchange="v1()"><label for="gF">Female</label></div></div><div class="field-err" id="petGenderErr">Please select a gender</div></div>
+        <div class="field"><label>Weight (kg) <span class="opt">(optional)</span></label><input type="number" id="petWeight" placeholder="e.g. 12.5" min="0.1" max="200" step="0.1" inputmode="decimal"><div class="field-err" id="petWeightErr">Weight must be between 0.1 and 200 kg</div></div>
+        <div class="field"><label>Color / markings <span class="opt">(optional)</span></label><input type="text" id="petColor" maxlength="80" placeholder="e.g. Golden with white patch" autocomplete="off"></div>
+        <div class="field"><label>Microchip number <span class="opt">(optional)</span></label><input type="text" id="petChip" maxlength="15" placeholder="15-digit number if any" inputmode="numeric"><div class="field-note">Must be exactly 15 digits if entered</div><div class="field-err" id="petChipErr">Microchip number must be exactly 15 digits</div></div>
+      </div>
+    </div>
+    <button class="next-btn" id="n1" onclick="goNext(1)" disabled>Continue</button>
+  </div>
+
+  <!-- S2 OWNER -->
+  <div class="form-section" id="s2">
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-label">Step 02</div>
+        <div class="section-title">Your details</div>
+        <div class="section-desc">So we can reach you when needed</div>
+      </div>
+      <div class="field-grid two">
+        <div class="field"><label>Your full name *</label><input type="text" id="ownerName" maxlength="80" placeholder="e.g. Priya Sharma" oninput="v2()" autocomplete="name"><div class="field-err" id="ownerNameErr">Please enter your name</div></div>
+        <div class="field"><label>WhatsApp number *</label><input type="tel" id="ownerWa" maxlength="10" placeholder="10-digit number" oninput="v2()" inputmode="numeric" autocomplete="tel"><div class="field-note">Indian number without country code</div><div class="field-err" id="ownerWaErr">Enter a valid 10-digit Indian mobile number</div></div>
+        <div class="field"><label>Email <span class="opt">(optional)</span></label><input type="email" id="ownerEmail" maxlength="100" placeholder="you@email.com" autocomplete="email"><div class="field-err" id="ownerEmailErr">Enter a valid email address</div></div>
+        <div class="field"><label>City *</label><input type="text" id="ownerCity" maxlength="60" placeholder="e.g. New Delhi" oninput="v2()" autocomplete="address-level2"><div class="field-err" id="ownerCityErr">Please enter your city</div></div>
+        <div class="field"><label>Address <span class="opt">(optional)</span></label><input type="text" id="ownerAddr" maxlength="120" placeholder="Street, locality" autocomplete="street-address"></div>
+        <div class="field"><label>Pincode <span class="opt">(optional)</span></label><input type="text" id="ownerPin" maxlength="6" placeholder="6-digit pincode" inputmode="numeric" autocomplete="postal-code"><div class="field-err" id="ownerPinErr">Pincode must be exactly 6 digits</div></div>
+        <div class="field" style="grid-column:1/-1"><label>Emergency contact <span class="opt">(optional)</span></label><input type="text" id="ownerEmg" maxlength="100" placeholder="Name and number of someone we can call" autocomplete="off"></div>
+      </div>
+    </div>
+    <button class="next-btn" id="n2" onclick="goNext(2)" disabled>Continue</button>
+    <button class="back-btn" onclick="goBack(1)">Back</button>
+  </div>
+
+  <!-- S3 VACCINATIONS -->
+  <div class="form-section" id="s3">
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-label">Step 03</div>
+        <div class="section-title">Vaccination history</div>
+        <div class="section-desc">Add every vaccine your pet has received</div>
+      </div>
+      <div id="vaxList">
+        <div class="vax-entry" id="vax0">
+          <div class="vax-head"><div class="vax-num">VACCINE 01</div><button class="vax-remove" onclick="removeVax(0)" style="display:none">&#10005;</button></div>
+          <div class="field-grid two">
+            <div class="field"><label>Vaccine name</label><select class="vn" onchange="v3();if(certMode==='per-vax')renderPerVaxCertZones()"><option value="">Select</option><option>Rabies</option><option>DHPPi</option><option>Leptospirosis</option><option>Kennel Cough</option><option>Canine Coronavirus</option><option>FVRCP</option><option>FeLV</option><option>Other</option></select></div>
+            <div class="field"><label>Date given</label><input type="date" class="vd" min="2000-01-01" max="2050-12-31" onchange="validateSingleDate(this);v3()"></div>
+            <div class="field"><label>Next due date</label><input type="date" class="vnd" min="2000-01-01" max="2050-12-31" onchange="validateSingleDate(this)"><div class="no-due-row"><input type="checkbox" class="vndc" id="vndc0" onchange="toggleNoDue(this)"><label for="vndc0">Fully vaccinated — no next due date</label></div></div>
+            <div class="field"><label>Batch number <span class="opt">(optional)</span></label><input type="text" class="vb" maxlength="30" placeholder="From vial" autocomplete="off"></div>
+            <div class="field"><label>Clinic name <span class="opt">(optional)</span></label><input type="text" class="vc" maxlength="80" placeholder="Where administered" autocomplete="off"></div>
+            <div class="field"><label>Vet doctor name <span class="opt">(optional)</span></label><input type="text" class="vv" maxlength="60" placeholder="Dr. name" autocomplete="off"></div>
+          </div>
+          <div class="field-err vax-date-err" style="margin-top:6px"></div>
+        </div>
+      </div>
+      <button class="add-vax" onclick="addVax()">+ Add another vaccine</button>
+      <div class="field-err" id="vaxRequiredErr" style="margin-top:8px"></div>
+    </div>
+
+    <!-- CERT MODE CARD -->
+    <div class="section-card" style="margin-top:12px">
+      <div class="section-head" style="margin-bottom:16px">
+        <div class="section-label">Certificate upload</div>
+        <div class="section-title" style="font-size:16px">Vaccination certificates *</div>
+        <div class="section-desc">How did your vet issue the certificates?</div>
+      </div>
+      <div class="cert-mode-selector">
+        <div class="cert-mode-label">Certificate format</div>
+        <div class="cert-mode-opts">
+          <div class="cert-mode-pill"><input type="radio" name="certMode" id="cmGlobal" value="global" checked onchange="setCertMode('global')"><label for="cmGlobal">One certificate for all vaccines</label></div>
+          <div class="cert-mode-pill"><input type="radio" name="certMode" id="cmPerVax" value="per-vax" onchange="setCertMode('per-vax')"><label for="cmPerVax">Separate certificate per vaccine</label></div>
+        </div>
+      </div>
+      <!-- Global upload -->
+      <div id="globalCertWrap">
+        <div class="upload-zone">
+          <img class="upload-preview" id="certPrev" src="" alt="Certificate preview">
+          <input type="file" accept="image/jpeg,image/png,application/pdf" id="certInput" onchange="handleCertUpload(this)">
+          <div class="upload-title">Upload vaccination certificate</div>
+          <div class="upload-sub">JPG, PNG or PDF, max 20MB. Click again to add more files.</div>
+          <div class="upload-err" id="certErr"></div>
+        </div>
+        <div id="globalCertList" style="margin-top:8px;font-size:12px;color:var(--grey)"></div>
+      </div>
+      <!-- Per-vax upload -->
+      <div id="perVaxCertWrap" style="display:none">
+        <div style="font-size:12px;color:var(--grey);margin-bottom:10px">Upload one certificate for each vaccine. Each zone matches its vaccine above.</div>
+        <div id="perVaxCertList"></div>
+      </div>
+      <div class="declaration-box" style="margin-top:16px">
+        <label class="declaration-check">
+          <input type="checkbox" id="certDecl" onchange="v3()">
+          <div class="declaration-text">I confirm these are authentic vaccination certificates issued by a registered veterinarian <span>— not modified or unofficial documents</span></div>
+        </label>
+        <div class="declaration-err" id="certDeclErr">Please confirm these are authentic certificates</div>
+      </div>
+      <div class="field-err" id="certRequiredErr" style="margin-top:8px"></div>
+    </div>
+    <button class="next-btn" id="n3" onclick="goNext(3)" disabled>Continue</button>
+    <button class="back-btn" onclick="goBack(2)">Back</button>
+  </div>
+
+  <!-- S4 DEWORMING -->
+  <div class="form-section" id="s4">
+    <div class="section-card">
+      <div class="section-head"><div class="section-label">Step 04</div><div class="section-title">Deworming and parasite control</div><div class="section-desc">Many boarding facilities check this alongside vaccines</div></div>
+      <div class="toggle-row"><div class="toggle-text">Has your pet been dewormed?</div><label class="toggle"><input type="checkbox" id="dwT" onchange="tog('dwT','dwR')"><div class="toggle-track"></div></label></div>
+      <div class="reveal" id="dwR">
+        <div class="field-grid two" style="margin-top:4px">
+          <div class="field"><label>Medicine name</label><input type="text" id="dwMed" maxlength="60" placeholder="e.g. Prazitel, Drontal" autocomplete="off"></div>
+          <div class="field"><label>Date given</label><input type="date" id="dwDate" min="2000-01-01" max="2050-12-31" onchange="validateSingleDate(this)"></div>
+          <div class="field"><label>Next due</label><input type="date" id="dwNext" min="2000-01-01" max="2050-12-31" onchange="validateSingleDate(this)"></div>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-top:10px"><div class="toggle-text">Tick and flea treatment done?</div><label class="toggle"><input type="checkbox" id="flT" onchange="tog('flT','flR')"><div class="toggle-track"></div></label></div>
+      <div class="reveal" id="flR">
+        <div class="field-grid two" style="margin-top:4px">
+          <div class="field"><label>Treatment name</label><input type="text" id="flMed" maxlength="60" placeholder="e.g. Frontline, NexGard" autocomplete="off"></div>
+          <div class="field"><label>Date given</label><input type="date" id="flDate" min="2000-01-01" max="2050-12-31" onchange="validateSingleDate(this)"></div>
+          <div class="field"><label>Next due</label><input type="date" id="flNext" min="2000-01-01" max="2050-12-31" onchange="validateSingleDate(this)"></div>
+        </div>
+      </div>
+    </div>
+    <button class="next-btn" onclick="goNext(4)">Continue</button>
+    <button class="back-btn" onclick="goBack(3)">Back</button>
+  </div>
+
+  <!-- S5 MEDICAL -->
+  <div class="form-section" id="s5">
+    <div class="section-card">
+      <div class="section-head"><div class="section-label">Step 05</div><div class="section-title">Medical history</div><div class="section-desc">Critical when visiting a new vet in a new city</div></div>
+      <div class="field-grid">
+        <div class="field"><label>Known allergies or reactions <span class="opt">(optional)</span></label><div class="tag-list" id="tagList"></div><div class="tag-input-row"><input type="text" id="tagIn" maxlength="50" placeholder="e.g. Penicillin" onkeydown="if(event.key==='Enter'){addTag();event.preventDefault()}"><button class="tag-add" onclick="addTag()">Add</button></div></div>
+        <div class="field"><label>Chronic conditions or ongoing medications <span class="opt">(optional)</span></label><textarea id="chronic" maxlength="500" placeholder="e.g. Hypothyroidism - Levothyroxine 0.1mg daily"></textarea></div>
+        <div class="field"><label>Previous surgeries or procedures <span class="opt">(optional)</span></label><textarea id="surgeries" maxlength="500" placeholder="e.g. ACL repair - March 2024 at DCC Hospital"></textarea></div>
+        <div class="field"><label>Blood type <span class="opt">(optional)</span></label><select id="bloodType"><option value="">Unknown / Not tested</option><option value="DEA 1.1+">Dog - DEA 1.1 Positive</option><option value="DEA 1.1-">Dog - DEA 1.1 Negative</option><option value="A">Cat - Type A</option><option value="B">Cat - Type B</option><option value="AB">Cat - Type AB</option></select></div>
+        <div class="field"><label>Additional vet notes <span class="opt">(optional)</span></label><textarea id="vetNotes" maxlength="500" placeholder="Any other important medical information"></textarea></div>
+      </div>
+    </div>
+    <button class="next-btn" onclick="goNext(5)">Continue</button>
+    <button class="back-btn" onclick="goBack(4)">Back</button>
+  </div>
+
+  <!-- S6 STERILISATION -->
+  <div class="form-section" id="s6">
+    <div class="section-card">
+      <div class="section-head"><div class="section-label">Step 06</div><div class="section-title">Sterilisation status</div><div class="section-desc">RWAs and municipal corporations often ask for this</div></div>
+      <div class="field"><label>Is your pet spayed or neutered?</label><div class="radio-row" style="margin-top:8px"><div class="rpill"><input type="radio" name="ster" id="sY" value="Yes" onchange="document.getElementById('sterR').classList.add('open')"><label for="sY">Yes</label></div><div class="rpill"><input type="radio" name="ster" id="sN" value="No" onchange="document.getElementById('sterR').classList.remove('open')"><label for="sN">No</label></div><div class="rpill"><input type="radio" name="ster" id="sP" value="Planned" onchange="document.getElementById('sterR').classList.remove('open')"><label for="sP">Planned</label></div></div></div>
+      <div class="reveal" id="sterR">
+        <div class="field-grid two" style="margin-top:4px">
+          <div class="field"><label>Date of procedure</label><input type="date" id="sterDate" min="2000-01-01" max="2050-12-31" onchange="validateSingleDate(this)"></div>
+          <div class="field"><label>Clinic name <span class="opt">(optional)</span></label><input type="text" id="sterClinic" maxlength="80" placeholder="Where it was done" autocomplete="off"></div>
+          <div class="field"><label>Vet doctor name <span class="opt">(optional)</span></label><input type="text" id="sterVet" maxlength="60" placeholder="Dr. name" autocomplete="off"></div>
+        </div>
+      </div>
+    </div>
+    <button class="next-btn" onclick="goNext(6)">Continue</button>
+    <button class="back-btn" onclick="goBack(5)">Back</button>
+  </div>
+
+  <!-- S7 INSURANCE -->
+  <div class="form-section" id="s7">
+    <div class="section-card">
+      <div class="section-head"><div class="section-label">Step 07</div><div class="section-title">Pet insurance</div><div class="section-desc">Skip if not insured - you can add this any time</div></div>
+      <div class="toggle-row"><div class="toggle-text">Does your pet have insurance?</div><label class="toggle"><input type="checkbox" id="insT" onchange="tog('insT','insR')"><div class="toggle-track"></div></label></div>
+      <div class="reveal" id="insR">
+        <div class="field-grid two" style="margin-top:4px">
+          <div class="field"><label>Insurance company</label><select id="insCo"><option value="">Select</option><option>Bajaj Allianz</option><option>HDFC ERGO</option><option>Future Generali</option><option>New India Assurance</option><option>Oriental Insurance</option><option>Vetina Pawtect</option><option>Other</option></select></div>
+          <div class="field"><label>Policy number <span class="opt">(optional)</span></label><input type="text" id="insPol" maxlength="40" placeholder="Reference number" autocomplete="off"></div>
+          <div class="field"><label>Expiry date</label><input type="date" id="insExp" min="2000-01-01" max="2050-12-31" onchange="validateSingleDate(this)"></div>
+          <div class="field"><label>Coverage amount (Rs.)</label><input type="number" id="insCov" placeholder="e.g. 50000" min="0" max="10000000" inputmode="numeric"></div>
+          <div class="field" style="grid-column:1/-1"><label>Emergency claim contact <span class="opt">(optional)</span></label><input type="text" id="insCon" maxlength="80" placeholder="Helpline number or email" autocomplete="off"></div>
+        </div>
+        <div class="field-err" id="insExpErr" style="margin-top:6px"></div>
+      </div>
+      <div class="ins-tip"><div class="ins-tip-title">No pet insurance yet?</div><div class="ins-tip-text">Less than 1% of Indian pets are insured. Plans start at Rs. 169 per month.</div></div>
+    </div>
+    <button class="next-btn" onclick="goNext(7)">Generate health card</button>
+    <button class="back-btn" onclick="goBack(6)">Back</button>
+  </div>
+
+  <!-- S8 CERTIFICATE -->
+  <div class="form-section" id="s8">
+    <div class="confetti-head">
+      <div class="confetti-title" id="certReadyTitle">Health card <span class="accent">ready.</span></div>
+      <div class="confetti-sub">Your pet's digital identity is now permanent and shareable</div>
+    </div>
+    <div class="cert-wrap">
+      <div class="certificate" id="certCard">
+        <div class="cert-top">
+          <div class="cert-pet-photo" id="cPhoto">PHOTO</div>
+          <div class="cert-top-info">
+            <div class="cert-pet-name" id="cName">-</div>
+            <div class="cert-pet-meta" id="cMeta">-</div>
+          </div>
+          <div class="cert-qr-box"><canvas id="qrC" width="64" height="64"></canvas><div class="cert-qr-label">Scan to verify</div></div>
+        </div>
+        <div class="cert-body">
+          <div class="cert-block"><div class="cert-block-title">Owner</div><div class="cert-row"><span class="cert-key">Name</span><span class="cert-val" id="c-own">-</span></div><div class="cert-row"><span class="cert-key">WhatsApp</span><span class="cert-val" id="c-wa">-</span></div><div class="cert-row"><span class="cert-key">City</span><span class="cert-val" id="c-city">-</span></div><div class="cert-row" id="c-emg-row"><span class="cert-key">Emergency</span><span class="cert-val" id="c-emg">-</span></div></div>
+          <div class="cert-block"><div class="cert-block-title">Pet details</div><div class="cert-row"><span class="cert-key">Breed</span><span class="cert-val" id="c-breed">-</span></div><div class="cert-row"><span class="cert-key">Gender</span><span class="cert-val" id="c-gen">-</span></div><div class="cert-row" id="c-wt-row"><span class="cert-key">Weight</span><span class="cert-val" id="c-wt">-</span></div><div class="cert-row" id="c-col-row"><span class="cert-key">Color</span><span class="cert-val" id="c-col">-</span></div><div class="cert-row" id="c-chip-row"><span class="cert-key">Microchip</span><span class="cert-val" id="c-chip">-</span></div></div>
+          <div class="cert-block"><div class="cert-block-title">Vaccinations</div><div id="cVax">-</div></div>
+          <div class="cert-block"><div class="cert-block-title">Sterilisation</div><div class="cert-row"><span class="cert-key">Status</span><span class="cert-val" id="c-ster">-</span></div></div>
+        </div>
+        <div class="cert-foot"><div><div class="cert-foot-brand">Vetovo</div><div class="cert-foot-id" id="c-uid">-</div></div><div class="cert-foot-date" id="c-date">-</div></div>
+      </div>
+    </div>
+    <div id="pdfTemplate" style="position:fixed;left:-9999px;top:0;width:794px;background:white;z-index:-1;display:none;"></div>
+    <button class="dl-btn" id="dlBtn" onclick="printCert()">Download Health Card as PDF</button>
+    <div class="dl-success" id="dlSuccess">
+      <div class="dl-success-icon">&#10003;</div>
+      <div class="dl-success-text">Health card downloaded!</div>
+      <div class="dl-success-sub">Check your Downloads folder</div>
+      <div class="dl-success-hint">On mobile: tap the download notification at the top of your browser, or open your Downloads app to find the PDF file.</div>
+    </div>
+    <div class="share-row">
+      <button class="share-btn s-wa" onclick="shareWa()">Share on WhatsApp</button>
+      <button class="share-btn s-copy" id="copyBtn" onclick="copyLnk()">Copy link</button>
+    </div>
+  </div>
+</main>
+
+<script>
+// ── PARTICLES ──
+var particlePaused=false;
+(function(){
+  var canvas=document.getElementById('particle-canvas'),ctx=canvas.getContext('2d'),W,H,pts=[];
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  for(var i=0;i<60;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.35,vy:(Math.random()-0.5)*0.35,r:Math.random()*1.8+0.8});
+  function draw(){
+    if(!particlePaused){
+      ctx.clearRect(0,0,W,H);
+      pts.forEach(function(p){p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(255,107,53,0.22)';ctx.fill();});
+      for(var i=0;i<pts.length;i++)for(var j=i+1;j<pts.length;j++){var a=pts[i],b=pts[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d<110){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle='rgba(255,107,53,'+(0.1*(1-d/110))+')';ctx.lineWidth=0.8;ctx.stroke();}}
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ── STATE ──
+var cur=1,vaxCount=1,tags=[],petPhotoData='',petPhotoUploaded=false;
+var certUploaded=false,certFiles=[];
+var perVaxCerts={};
+var certMode='global';
+var TODAY=new Date().toISOString().split('T')[0];
+var STEPS=['Pet Identity','Owner Details','Vaccinations','Deworming','Medical History','Sterilisation','Insurance','Health Card'];
+
+// ── CERT MODE ──
+function setCertMode(mode){
+  certMode=mode;
+  document.getElementById('globalCertWrap').style.display=mode==='global'?'':'none';
+  document.getElementById('perVaxCertWrap').style.display=mode==='per-vax'?'':'none';
+  if(mode==='per-vax')renderPerVaxCertZones();
+  v3();
+}
+
+function renderPerVaxCertZones(){
+  var wrap=document.getElementById('perVaxCertList');wrap.innerHTML='';
+  var entries=document.querySelectorAll('.vax-entry');
+  entries.forEach(function(entry,idx){
+    var vaxName=entry.querySelector('.vn').value||('Vaccine '+(idx+1));
+    var files=perVaxCerts[idx]||[];
+    var zone=document.createElement('div');zone.className='per-vax-cert-zone';zone.id='pvCertZone'+idx;
+    var lbl=document.createElement('div');lbl.className='per-vax-cert-label';lbl.textContent='Certificate for '+vaxName;zone.appendChild(lbl);
+    var info=document.createElement('div');info.style.cssText='font-size:11px;color:var(--grey);margin-bottom:8px';info.textContent=files.length>0?files.length+' file(s) uploaded':'No file uploaded yet';info.id='pvCertInfo'+idx;zone.appendChild(info);
+    var lbEl=document.createElement('label');lbEl.style.cssText='display:inline-block;padding:8px 16px;background:var(--orange-light);color:var(--orange);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--orange-mid)';lbEl.textContent=files.length>0?'Add more files':'Upload certificate';
+    var fileIn=document.createElement('input');fileIn.type='file';fileIn.accept='image/jpeg,image/png,application/pdf';fileIn.style.display='none';fileIn.dataset.vaxIdx=idx;fileIn.onchange=handlePerVaxCertUpload;lbEl.appendChild(fileIn);zone.appendChild(lbEl);
+    wrap.appendChild(zone);
+  });
+}
+
+function handlePerVaxCertUpload(e){
+  var input=e.target,idx=parseInt(input.dataset.vaxIdx);
+  if(!input.files||!input.files[0])return;
+  var file=input.files[0];
+  if(file.size>20*1024*1024){alert('File too large. Max 20MB.');return;}
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    if(!perVaxCerts[idx])perVaxCerts[idx]=[];
+    perVaxCerts[idx].push({name:file.name,type:file.type,dataUrl:ev.target.result});
+    var info=document.getElementById('pvCertInfo'+idx);
+    if(info)info.textContent=perVaxCerts[idx].length+' file(s) uploaded';
+    v3();
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleCertUpload(input){
+  clearErr('certErr');
+  if(!input.files||!input.files[0])return;
+  var file=input.files[0];
+  var allowed=['image/jpeg','image/png','image/webp','application/pdf'];
+  if(!allowed.includes(file.type)){showErr('certErr','Invalid file type. Please upload JPG, PNG or PDF');input.value='';return;}
+  if(file.size>20*1024*1024){showErr('certErr','File too large. Max 20MB.');input.value='';return;}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var dataUrl=e.target.result;
+    certFiles.push({name:file.name,type:file.type,dataUrl:dataUrl});
+    certUploaded=true;
+    if(file.type!=='application/pdf'){var prev=document.getElementById('certPrev');if(prev){prev.src=dataUrl;prev.style.display='block';}}
+    var listEl=document.getElementById('globalCertList');
+    if(listEl)listEl.textContent=certFiles.length+' file(s) uploaded. Click the zone above to add more.';
+    v3();
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── DATE ──
+function setDateLimits(){
+  ['petDob','dwDate','flDate','sterDate'].forEach(function(id){var el=document.getElementById(id);if(el)el.setAttribute('max',TODAY);});
+  document.querySelectorAll('input.vd').forEach(function(el){el.setAttribute('max',TODAY);});
+  ['dwNext','flNext','insExp'].forEach(function(id){var el=document.getElementById(id);if(el)el.setAttribute('min',TODAY);});
+  document.querySelectorAll('input.vnd').forEach(function(el){el.setAttribute('min',TODAY);});
+}
+
+function validateSingleDate(el){
+  if(!el.value)return;
+  var val=el.value,min=el.getAttribute('min')||'2000-01-01',max=el.getAttribute('max')||'2050-12-31',msg='';
+  if(val<min)msg='Date must be after '+formatDate(min);
+  else if(val>max)msg='Date must be before '+formatDate(max);
+  var parent=el.parentElement;
+  var errEl=parent.querySelector('.field-err,.date-err-tmp');
+  if(msg){
+    el.classList.add('err');
+    if(errEl&&errEl.classList.contains('field-err')){errEl.textContent=msg;errEl.classList.add('show');}
+    else{var tmp=parent.querySelector('.date-err-tmp');if(!tmp){tmp=document.createElement('div');tmp.className='field-err date-err-tmp';tmp.setAttribute('role','alert');parent.appendChild(tmp);}tmp.textContent=msg;tmp.classList.add('show');}
+  } else {
+    el.classList.remove('err');
+    var tmp=parent.querySelector('.date-err-tmp');if(tmp){tmp.textContent='';tmp.classList.remove('show');}
+    if(errEl&&errEl.classList.contains('field-err')){errEl.textContent='';errEl.classList.remove('show');}
+  }
+}
+
+function formatDate(iso){var p=iso.split('-'),m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return p[2]+' '+m[parseInt(p[1])-1]+' '+p[0];}
+
+var formStarted=false;
+window.addEventListener('beforeunload',function(e){if(formStarted&&cur<8){e.preventDefault();e.returnValue='';}});
+
+function buildDots(){
+  var wrap=document.getElementById('stepDots');wrap.innerHTML='';
+  STEPS.forEach(function(_,i){
+    var d=document.createElement('div');d.className='step-dot'+(i===0?' active':'');d.id='dot'+i;d.setAttribute('role','button');d.setAttribute('aria-label','Step '+(i+1));d.setAttribute('tabindex',i<cur?'0':'-1');
+    if(i<cur-1){d.classList.add('done');(function(n){d.onclick=function(){goDot(n+1);};})(i);}
+    wrap.appendChild(d);
+  });
+}
+function goDot(n){if(n<cur)goSec(n);}
+
+function startForm(){
+  formStarted=true;particlePaused=true;
+  document.getElementById('particle-canvas').style.opacity='0.1';
+  var fa=document.getElementById('form-area');fa.classList.add('visible');setTimeout(function(){fa.classList.add('shown');},20);
+  buildDots();updateProgress(1);
+  setTimeout(function(){fa.scrollIntoView({behavior:'smooth',block:'start'});},100);
+  setDateLimits();
+  setTimeout(function(){var f=document.getElementById('petName');if(f)f.focus();},400);
+}
+
+function goSec(n){
+  document.getElementById('s'+cur).classList.remove('active');
+  var pd=document.getElementById('dot'+(cur-1));if(pd){pd.classList.remove('active');if(n>cur)pd.classList.add('done');pd.setAttribute('tabindex',n>cur?'0':'-1');}
+  cur=n;
+  document.getElementById('s'+n).classList.add('active');
+  var nd=document.getElementById('dot'+(n-1));if(nd){nd.classList.add('active');nd.setAttribute('tabindex','0');}
+  updateProgress(n);
+  document.getElementById('form-area').scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(function(){var sec=document.getElementById('s'+n);var first=sec.querySelector('input:not([type=hidden]),select,textarea,button');if(first)first.focus();},420);
+}
+
+function validateSectionDates(sNum){
+  var section=document.getElementById('s'+sNum);if(!section)return true;
+  var allValid=true,firstBad=null;
+  section.querySelectorAll('input[type="date"]').forEach(function(el){
+    if(!el.value)return;
+    var min=el.getAttribute('min')||'2000-01-01',max=el.getAttribute('max')||'2050-12-31',val=el.value,msg='';
+    if(val<min)msg='Date must be after '+formatDate(min);
+    else if(val>max)msg='Date must be before '+formatDate(max);
+    if(msg){
+      el.classList.add('err');el.value='';
+      var parent=el.parentElement;var errEl=parent.querySelector('.field-err,.date-err-tmp');
+      if(!errEl){errEl=document.createElement('div');errEl.className='field-err date-err-tmp';errEl.setAttribute('role','alert');parent.appendChild(errEl);}
+      errEl.textContent=msg;errEl.classList.add('show');allValid=false;if(!firstBad)firstBad=el;
+    }
+  });
+  if(!allValid){
+    var secErr=document.getElementById('secDateErr'+sNum);
+    if(!secErr){secErr=document.createElement('div');secErr.id='secDateErr'+sNum;secErr.className='field-err';secErr.setAttribute('role','alert');secErr.style.cssText='margin-bottom:10px;font-size:13px;padding:10px 14px;background:var(--red-light);border-radius:var(--radius-sm);border-left:3px solid var(--red)';var btn=section.querySelector('.next-btn');if(btn)btn.parentNode.insertBefore(secErr,btn);}
+    secErr.textContent='Some dates are invalid. Please correct them before continuing.';secErr.classList.add('show');if(firstBad)firstBad.focus();
+  } else {var secErr=document.getElementById('secDateErr'+sNum);if(secErr){secErr.textContent='';secErr.classList.remove('show');}}
+  return allValid;
+}
+
+function goNext(from){
+  if(!validateSectionDates(from))return;
+  if(from===1&&!validateS1())return;
+  if(from===2&&!validateS2())return;
+  if(from===3){
+    var firstEntry=document.querySelector('.vax-entry');
+    var hasVaxName=firstEntry?firstEntry.querySelector('.vn').value:'';
+    var hasVaxDate=firstEntry?firstEntry.querySelector('.vd').value:'';
+    if(!hasVaxName||!hasVaxDate){showErr('vaxRequiredErr','Please select a vaccine name and date given for at least the first vaccine');return;}
+    var hasCert=certMode==='global'?certUploaded:Object.keys(perVaxCerts).length>0;
+    if(!hasCert){showErr('certRequiredErr','Please upload at least one vaccination certificate to continue');return;}
+    var certDecl=document.getElementById('certDecl');
+    if(!certDecl||!certDecl.checked){showErr('certDeclErr','Please confirm these are authentic certificates');return;}
+    clearErr('vaxRequiredErr');clearErr('certRequiredErr');clearErr('certDeclErr');
+  }
+  if(from===7){
+    if(document.getElementById('insT').checked){var exp=document.getElementById('insExp').value;if(exp&&exp<TODAY){showErr('insExpErr','Please correct the insurance expiry date');return;}clearErr('insExpErr');}
+    buildCert();return;
+  }
+  goSec(from+1);
+}
+
+function goBack(to){goSec(to);}
+function updateProgress(n){document.getElementById('pFill').style.width=(n/8*100)+'%';document.getElementById('pLabel').textContent=STEPS[n-1];document.getElementById('pCount').textContent=n+' / 8';var pb=document.getElementById('form-area');if(pb)pb.setAttribute('aria-valuenow',n);}
+function showErr(id,msg){var el=document.getElementById(id);if(el){el.textContent=msg;el.classList.add('show');}}
+function clearErr(id){var el=document.getElementById(id);if(el){el.textContent='';el.classList.remove('show');}}
+function markErr(id){var el=document.getElementById(id);if(el)el.classList.add('err');}
+function clearMark(id){var el=document.getElementById(id);if(el)el.classList.remove('err');}
+
+function v1(){
+  var name=document.getElementById('petName').value.trim(),species=document.getElementById('petSpecies').value,breed=document.getElementById('petBreed').value.trim(),gender=document.querySelector('input[name="pg"]:checked'),decl=document.getElementById('petPhotoDecl')&&document.getElementById('petPhotoDecl').checked;
+  document.getElementById('n1').disabled=!(name&&species&&breed&&gender&&petPhotoUploaded&&decl);
+}
+
+function validateS1(){
+  var ok=true;
+  if(!document.getElementById('petName').value.trim()){showErr('petNameErr','Please enter your pet\'s name');markErr('petName');ok=false;}else{clearErr('petNameErr');clearMark('petName');}
+  if(!document.getElementById('petSpecies').value){showErr('petSpeciesErr','Please select a species');markErr('petSpecies');ok=false;}else{clearErr('petSpeciesErr');clearMark('petSpecies');}
+  if(!document.getElementById('petBreed').value.trim()){showErr('petBreedErr','Please enter the breed');markErr('petBreed');ok=false;}else{clearErr('petBreedErr');clearMark('petBreed');}
+  if(!document.querySelector('input[name="pg"]:checked')){showErr('petGenderErr','Please select a gender');ok=false;}else{clearErr('petGenderErr');}
+  var wt=parseFloat(document.getElementById('petWeight').value);if(document.getElementById('petWeight').value&&(isNaN(wt)||wt<0.1||wt>200)){showErr('petWeightErr','Weight must be between 0.1 and 200 kg');markErr('petWeight');ok=false;}else{clearErr('petWeightErr');clearMark('petWeight');}
+  var chip=document.getElementById('petChip').value.trim();if(chip&&!/^\d{15}$/.test(chip)){showErr('petChipErr','Microchip number must be exactly 15 digits');markErr('petChip');ok=false;}else{clearErr('petChipErr');clearMark('petChip');}
+  if(!petPhotoUploaded){showErr('photoErr','Please upload a photo of your pet');ok=false;}else{clearErr('photoErr');}
+  var decl=document.getElementById('petPhotoDecl');if(decl&&!decl.checked){showErr('petPhotoDeclErr','Please confirm this is a genuine photo of your pet');ok=false;}else{clearErr('petPhotoDeclErr');}
+  return ok;
+}
+
+function v2(){
+  var name=document.getElementById('ownerName').value.trim(),wa=document.getElementById('ownerWa').value.trim(),city=document.getElementById('ownerCity').value.trim();
+  document.getElementById('n2').disabled=!(name&&/^\d{10}$/.test(wa)&&city);
+}
+
+function validateS2(){
+  var ok=true;
+  if(!document.getElementById('ownerName').value.trim()){showErr('ownerNameErr','Please enter your name');markErr('ownerName');ok=false;}else{clearErr('ownerNameErr');clearMark('ownerName');}
+  var wa=document.getElementById('ownerWa').value.trim();if(!/^\d{10}$/.test(wa)){showErr('ownerWaErr','Enter a valid 10-digit Indian mobile number');markErr('ownerWa');ok=false;}else{clearErr('ownerWaErr');clearMark('ownerWa');}
+  var email=document.getElementById('ownerEmail').value.trim();if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showErr('ownerEmailErr','Enter a valid email address');markErr('ownerEmail');ok=false;}else{clearErr('ownerEmailErr');clearMark('ownerEmail');}
+  if(!document.getElementById('ownerCity').value.trim()){showErr('ownerCityErr','Please enter your city');markErr('ownerCity');ok=false;}else{clearErr('ownerCityErr');clearMark('ownerCity');}
+  var pin=document.getElementById('ownerPin').value.trim();if(pin&&!/^\d{6}$/.test(pin)){showErr('ownerPinErr','Pincode must be exactly 6 digits');markErr('ownerPin');ok=false;}else{clearErr('ownerPinErr');clearMark('ownerPin');}
+  return ok;
+}
+
+function v3(){
+  var firstEntry=document.querySelector('.vax-entry');
+  var hasVaxName=firstEntry?firstEntry.querySelector('.vn').value:'';
+  var hasVaxDate=firstEntry?firstEntry.querySelector('.vd').value:'';
+  var decl=document.getElementById('certDecl')&&document.getElementById('certDecl').checked;
+  var hasCert=certMode==='global'?certUploaded:Object.keys(perVaxCerts).length>0;
+  var btn=document.querySelector('#s3 .next-btn');
+  if(btn)btn.disabled=!(hasCert&&hasVaxName&&hasVaxDate&&decl);
+}
+
+function handlePhotoUpload(input,prevId,zoneId,errId){
+  clearErr(errId);
+  if(!input.files||!input.files[0])return;
+  var file=input.files[0];
+  var allowed=['image/jpeg','image/png','image/webp'];
+  if(!allowed.includes(file.type)){showErr(errId,'Please upload JPG or PNG');input.value='';return;}
+  if(file.size>10*1024*1024){showErr(errId,'File too large. Max 10MB.');input.value='';return;}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    petPhotoData=e.target.result;petPhotoUploaded=true;
+    var prev=document.getElementById(prevId);if(prev){prev.src=e.target.result;prev.style.display='block';}
+    var z=document.getElementById(zoneId);if(z){z.querySelector('.upload-title').style.display='none';z.querySelector('.upload-sub').style.display='none';}
+    v1();
+  };
+  reader.readAsDataURL(file);
+}
+
+function addVax(){
+  var idx=vaxCount++;var num=idx<9?'0'+(idx+1):''+(idx+1);
+  var div=document.createElement('div');div.className='vax-entry';div.id='vax'+idx;
+  div.innerHTML='<div class="vax-head"><div class="vax-num">VACCINE '+num+'</div><button class="vax-remove" onclick="removeVax('+idx+')">&#10005;</button></div>'
+    +'<div class="field-grid two">'
+    +'<div class="field"><label>Vaccine name</label><select class="vn" onchange="v3();if(certMode===\'per-vax\')renderPerVaxCertZones()"><option value="">Select</option><option>Rabies</option><option>DHPPi</option><option>Leptospirosis</option><option>Kennel Cough</option><option>Canine Coronavirus</option><option>FVRCP</option><option>FeLV</option><option>Other</option></select></div>'
+    +'<div class="field"><label>Date given</label><input type="date" class="vd" max="'+TODAY+'" onchange="validateSingleDate(this);v3()"></div>'
+    +'<div class="field"><label>Next due date</label><input type="date" class="vnd" min="'+TODAY+'" onchange="validateSingleDate(this)"><div class="no-due-row"><input type="checkbox" class="vndc" id="vndc'+idx+'" onchange="toggleNoDue(this)"><label for="vndc'+idx+'">Fully vaccinated — no next due date</label></div></div>'
+    +'<div class="field"><label>Batch number <span class="opt">(optional)</span></label><input type="text" class="vb" maxlength="30" placeholder="From vial" autocomplete="off"></div>'
+    +'<div class="field"><label>Clinic name <span class="opt">(optional)</span></label><input type="text" class="vc" maxlength="80" placeholder="Where administered" autocomplete="off"></div>'
+    +'<div class="field"><label>Vet doctor name <span class="opt">(optional)</span></label><input type="text" class="vv" maxlength="60" placeholder="Dr. name" autocomplete="off"></div>'
+    +'</div><div class="field-err vax-date-err" style="margin-top:6px"></div>';
+  document.getElementById('vaxList').appendChild(div);
+  if(vaxCount>1)document.querySelectorAll('.vax-remove').forEach(function(b){b.style.display='block';});
+  if(certMode==='per-vax')renderPerVaxCertZones();
+}
+
+function removeVax(idx){
+  var el=document.getElementById('vax'+idx);if(el)el.remove();
+  delete perVaxCerts[idx];
+  if(document.querySelectorAll('.vax-entry').length<=1)document.querySelectorAll('.vax-remove').forEach(function(b){b.style.display='none';});
+  if(certMode==='per-vax')renderPerVaxCertZones();
+}
+
+function tog(tId,rId){var el=document.getElementById(rId);document.getElementById(tId).checked?el.classList.add('open'):el.classList.remove('open');}
+
+function toggleNoDue(cb){
+  var entry=cb.closest('.vax-entry');
+  var vndInput=entry.querySelector('.vnd');
+  if(cb.checked){vndInput.value='';vndInput.disabled=true;vndInput.style.opacity='0.4';}
+  else{vndInput.disabled=false;vndInput.style.opacity='1';}
+}
+
+function addTag(){
+  var inp=document.getElementById('tagIn'),v=inp.value.trim().slice(0,50);
+  if(!v||tags.length>=20)return;
+  if(!/^[a-zA-Z\s\-]+$/.test(v)){inp.style.borderColor='var(--red)';return;}
+  inp.style.borderColor='';tags.push(v);renderTags();inp.value='';
+}
+function removeTag(i){tags.splice(i,1);renderTags();}
+function renderTags(){
+  var wrap=document.getElementById('tagList');wrap.innerHTML='';
+  tags.forEach(function(t,i){
+    var el=document.createElement('div');el.className='tag';
+    var txt=document.createTextNode(t+' ');
+    var btn=document.createElement('span');btn.className='tag-x';btn.setAttribute('tabindex','0');btn.textContent='x';btn.onclick=function(){removeTag(i);};btn.onkeydown=function(e){if(e.key==='Enter'||e.key===' ')removeTag(i);};
+    el.appendChild(txt);el.appendChild(btn);wrap.appendChild(el);
+  });
+}
+
+// ── QR CODE — reliable ──
+function qrDraw(canvas, text) {
+  if (!canvas || !text) return;
+  var size = canvas.width;
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, size, size);
+  try {
+    var offscreen = document.createElement('div');
+    offscreen.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:'+size+'px;height:'+size+'px;';
+    document.body.appendChild(offscreen);
+    new QRCode(offscreen, {text:text, width:size, height:size, colorDark:'#0A0A0A', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.M});
+    function tryCapture(attempts) {
+      if (attempts <= 0) { document.body.removeChild(offscreen); fallbackQR(ctx, size); return; }
+      var qrCanvas = offscreen.querySelector('canvas');
+      var qrImg = offscreen.querySelector('img');
+      if (qrCanvas) { ctx.drawImage(qrCanvas, 0, 0, size, size); document.body.removeChild(offscreen); }
+      else if (qrImg && qrImg.complete && qrImg.naturalWidth > 0) { ctx.drawImage(qrImg, 0, 0, size, size); document.body.removeChild(offscreen); }
+      else { setTimeout(function(){ tryCapture(attempts - 1); }, 100); }
+    }
+    setTimeout(function(){ tryCapture(15); }, 80);
+  } catch(e) { fallbackQR(ctx, size); }
+}
+function fallbackQR(ctx, size) {
+  ctx.fillStyle='#f9fafb';ctx.fillRect(0,0,size,size);ctx.fillStyle='#6B7280';ctx.font='bold 9px sans-serif';ctx.textAlign='center';ctx.fillText('QR',size/2,size/2+3);
+}
+
+// ── BUILD CERT ──
+function buildCert(){
+  goSec(8);formStarted=false;
+  document.getElementById('certReadyTitle').innerHTML='Saving your health card...';
+  document.getElementById('s8').querySelector('.confetti-sub').textContent='Please wait while we save your data.';
+  var dlBtn=document.getElementById('dlBtn');if(dlBtn)dlBtn.disabled=true;
+
+  var petName=document.getElementById('petName').value.trim();
+  var species=document.getElementById('petSpecies').value;
+  var breed=document.getElementById('petBreed').value.trim();
+  var dob=document.getElementById('petDob').value;
+  var gender=(document.querySelector('input[name="pg"]:checked')||{}).value||'-';
+  var weight=document.getElementById('petWeight').value;
+  var color=document.getElementById('petColor').value.trim();
+  var chip=document.getElementById('petChip').value.trim();
+  var ownerName=document.getElementById('ownerName').value.trim();
+  var ownerWa=document.getElementById('ownerWa').value.trim();
+  var ownerCity=document.getElementById('ownerCity').value.trim();
+  var emg=document.getElementById('ownerEmg').value.trim();
+  var sterEl=document.querySelector('input[name="ster"]:checked');
+  var ster=sterEl?sterEl.value:'Not recorded';
+
+  var vaccines=[];
+  document.querySelectorAll('.vax-entry').forEach(function(e,idx){
+    var name=e.querySelector('.vn').value,date=e.querySelector('.vd').value,next=e.querySelector('.vnd').value;
+    var clinic=e.querySelector('.vc').value.trim(),vet=e.querySelector('.vv').value.trim(),batch=e.querySelector('.vb').value.trim();
+    var noDue=e.querySelector('.vndc')&&e.querySelector('.vndc').checked;
+    if(!name&&!date)return;
+    var today=new Date(),nd=next?new Date(next):null;
+    var status,statusCls;
+    if(noDue){status='Complete';statusCls='s-complete';}
+    else if(nd){var diff=(nd-today)/864e5;if(diff<0){status='Overdue';statusCls='s-overdue';}else if(diff<30){status='Due soon';statusCls='s-due';}else{status='Valid';statusCls='s-valid';}}
+    else{status='Valid';statusCls='s-valid';}
+    var certs=certMode==='per-vax'?(perVaxCerts[idx]||[]):[];
+    vaccines.push({name:name,date:date,next:next,clinic:clinic,vet:vet,batch:batch,status:status,statusCls:statusCls,certs:certs,vaxIdx:idx});
+  });
+
+  var payload={
+    pet_name:petName,species:species,breed:breed,dob:dob,gender:gender,weight:weight,color:color,microchip:chip,
+    owner_name:ownerName,owner_whatsapp:ownerWa,owner_email:document.getElementById('ownerEmail').value.trim(),
+    owner_city:ownerCity,owner_address:document.getElementById('ownerAddr').value.trim(),owner_pincode:document.getElementById('ownerPin').value.trim(),emergency_contact:emg,
+    vaccinations:vaccines,
+    deworming:{done:document.getElementById('dwT').checked,medicine:document.getElementById('dwMed').value.trim(),date:document.getElementById('dwDate').value,next:document.getElementById('dwNext').value},
+    flea_treatment:{done:document.getElementById('flT').checked,medicine:document.getElementById('flMed').value.trim(),date:document.getElementById('flDate').value,next:document.getElementById('flNext').value},
+    medical_history:{allergies:tags,chronic:document.getElementById('chronic').value.trim(),surgeries:document.getElementById('surgeries').value.trim(),blood_type:document.getElementById('bloodType').value,vet_notes:document.getElementById('vetNotes').value.trim()},
+    sterilised:ster,sterilise_date:document.getElementById('sterDate')?document.getElementById('sterDate').value:'',sterilise_clinic:document.getElementById('sterClinic')?document.getElementById('sterClinic').value.trim():'',sterilise_vet:document.getElementById('sterVet')?document.getElementById('sterVet').value.trim():'',
+    insurance:{has_insurance:document.getElementById('insT').checked,company:document.getElementById('insCo').value,policy:document.getElementById('insPol').value.trim(),expiry:document.getElementById('insExp').value,coverage:document.getElementById('insCov').value,contact:document.getElementById('insCon').value.trim()},
+    pet_photo:petPhotoData,pet_photo_type:petPhotoData?'image/jpeg':'',
+    cert_files:certMode==='global'?certFiles.map(function(cf){return {name:cf.name,type:cf.type,dataUrl:cf.dataUrl};}):[]
+  };
+
+  fetch('https://vetovo.in/api/pets/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+  .then(function(res){return res.json();})
+  .then(function(data){if(data.error)throw new Error(data.error);renderCert(data.vetovo_id,petName,species,breed,dob,gender,weight,color,chip,ownerName,ownerWa,ownerCity,emg,ster,vaccines);})
+  .catch(function(err){
+    console.error('Save error:',err);
+    var uid='VTV-'+Math.random().toString(36).substr(2,8).toUpperCase();
+    renderCert(uid,petName,species,breed,dob,gender,weight,color,chip,ownerName,ownerWa,ownerCity,emg,ster,vaccines);
+  });
+}
+
+function renderCert(uid,petName,species,breed,dob,gender,weight,color,chip,ownerName,ownerWa,ownerCity,emg,ster,vaccines){
+  document.getElementById('certReadyTitle').innerHTML='Health card <span class="accent">ready.</span>';
+  document.getElementById('s8').querySelector('.confetti-sub').textContent='Your pet\'s digital identity is now permanent and shareable';
+  var dlBtn=document.getElementById('dlBtn');if(dlBtn)dlBtn.disabled=false;
+
+  document.getElementById('cName').textContent=petName;
+  var metaLine=[species,breed,gender].filter(Boolean).join('  |  ');
+  document.getElementById('cMeta').innerHTML='';
+  var ml=document.createElement('div');ml.textContent=metaLine;document.getElementById('cMeta').appendChild(ml);
+  if(weight||color){var ml2=document.createElement('div');ml2.style.marginTop='3px';ml2.textContent=[weight?weight+' kg':'',color].filter(Boolean).join('  |  ');document.getElementById('cMeta').appendChild(ml2);}
+  document.getElementById('c-own').textContent=ownerName;
+  document.getElementById('c-wa').textContent=ownerWa?'+91 '+ownerWa:'-';
+  document.getElementById('c-city').textContent=ownerCity;
+  var emgRow=document.getElementById('c-emg-row');if(emg){document.getElementById('c-emg').textContent=emg;emgRow.style.display='';}else{emgRow.style.display='none';}
+  document.getElementById('c-breed').textContent=breed;
+  document.getElementById('c-gen').textContent=gender;
+  var wtRow=document.getElementById('c-wt-row');if(weight){document.getElementById('c-wt').textContent=weight+' kg';wtRow.style.display='';}else{wtRow.style.display='none';}
+  var colRow=document.getElementById('c-col-row');if(color){document.getElementById('c-col').textContent=color;colRow.style.display='';}else{colRow.style.display='none';}
+  var chipRow=document.getElementById('c-chip-row');if(chip){document.getElementById('c-chip').textContent=chip;chipRow.style.display='';}else{chipRow.style.display='none';}
+  document.getElementById('c-ster').textContent=ster;
+  document.getElementById('c-uid').textContent='ID: '+uid;
+  document.getElementById('c-date').textContent='Generated: '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  if(petPhotoData){var ph=document.getElementById('cPhoto');var img=document.createElement('img');img.src=petPhotoData;img.alt='Photo of '+petName;ph.innerHTML='';ph.appendChild(img);}
+  var vaxWrap=document.getElementById('cVax');vaxWrap.innerHTML='';
+  if(vaccines.length===0){var none=document.createElement('div');none.style.cssText='font-size:13px;color:var(--grey)';none.textContent='No vaccines recorded';vaxWrap.appendChild(none);}
+  vaccines.forEach(function(v){
+    var pill=document.createElement('div');pill.className='vax-pill';
+    var info=document.createElement('div');
+    var nm=document.createElement('div');nm.className='vax-pill-name';nm.textContent=v.name||'Vaccine';
+    var meta=document.createElement('div');meta.className='vax-pill-date';
+    var parts=[];if(v.date)parts.push('Given: '+v.date);if(v.clinic)parts.push(v.clinic);if(v.next)parts.push('Next: '+v.next);
+    meta.textContent=parts.join(' / ');
+    info.appendChild(nm);info.appendChild(meta);
+    var badge=document.createElement('div');badge.className='vax-status '+(v.statusCls||'s-valid');if(v.statusCls==='s-complete')badge.style.cssText='background:#166534;color:white;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap';badge.textContent=v.status;
+    pill.appendChild(info);pill.appendChild(badge);vaxWrap.appendChild(pill);
+  });
+
+  window._vetovoAllergies=tags.slice();
+  window._vetovoCertData={petName:petName,species:species,breed:breed,dob:dob,gender:gender,weight:weight,color:color,chip:chip,ownerName:ownerName,ownerWa:ownerWa,ownerCity:ownerCity,emg:emg,ster:ster,uid:uid,vaccines:vaccines,sterClinic:document.getElementById('sterClinic')?document.getElementById('sterClinic').value.trim():'',sterDate:document.getElementById('sterDate')?document.getElementById('sterDate').value:'',certMode:certMode};
+
+  qrDraw(document.getElementById('qrC'),'https://vetovo.in/pets/'+uid);
+}
+
+// ── PDF — Health Card layout ──
+function printCert() {
+  var btn = document.getElementById('dlBtn');
+  if (btn) { btn.classList.add('loading'); btn.disabled = true; }
+  var successDiv = document.getElementById('dlSuccess');
+  if (successDiv) successDiv.classList.remove('show');
+
+  var d = window._vetovoCertData;
+  if (!d) { alert('Please generate your health card first.'); if (btn) { btn.classList.remove('loading'); btn.disabled = false; } return; }
+
+  var today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+
+  // Extra fields not stored in _vetovoCertData
+  var g = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  var ownerEmail = g('ownerEmail');
+  var ownerAddr  = g('ownerAddr');
+  var chronic    = g('chronic');
+  var surgeries  = g('surgeries');
+  var bloodType  = g('bloodType');
+  var vetNotes   = g('vetNotes');
+  var sterVet    = g('sterVet');
+  var dwDone     = !!(document.getElementById('dwT') && document.getElementById('dwT').checked);
+  var dwMed      = dwDone ? g('dwMed') : '';
+  var dwDate     = dwDone ? g('dwDate') : '';
+  var dwNext     = dwDone ? g('dwNext') : '';
+  var flDone     = !!(document.getElementById('flT') && document.getElementById('flT').checked);
+  var flMed      = flDone ? g('flMed') : '';
+  var flNext     = flDone ? g('flNext') : '';
+  var allergies  = (window._vetovoAllergies && window._vetovoAllergies.length) ? window._vetovoAllergies.join(', ') : '';
+
+  // Collect cert image pages (skip PDF uploads — can't render them)
+  var certImages = [];
+  if (d.certMode === 'global') {
+    certFiles.forEach(function(cf, i) {
+      if (cf.type !== 'application/pdf')
+        certImages.push({ dataUrl: cf.dataUrl, name: cf.name, label: 'Vaccination Certificate' + (certFiles.length > 1 ? ' (Page ' + (i + 1) + ')' : '') });
+    });
+  } else {
+    d.vaccines.forEach(function(v, vi) {
+      (perVaxCerts[v.vaxIdx] || []).forEach(function(cf, ci) {
+        if (cf.type !== 'application/pdf')
+          certImages.push({ dataUrl: cf.dataUrl, name: cf.name, label: (v.name || 'Vaccine ' + (vi + 1)) + ' Certificate' + ((perVaxCerts[v.vaxIdx] || []).length > 1 ? ' ' + (ci + 1) : '') });
+      });
+    });
+  }
+  var totalPages = 1 + certImages.length;
+
+  // ── Helpers ──
+  function esc(s) {
+    return String(s || '').replace(/[&<>"']/g, function(c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function calcAge(dob) {
+    if (!dob) return '';
+    var b = new Date(dob), now = new Date();
+    var yr = now.getFullYear() - b.getFullYear(), mo = now.getMonth() - b.getMonth();
+    if (mo < 0) { yr--; mo += 12; }
+    var p = []; if (yr > 0) p.push(yr + ' yr'); if (mo > 0) p.push(mo + ' mo');
+    return p.join(' ') || '< 1 mo';
+  }
+  function pipCls(statusCls) {
+    return statusCls === 's-valid' ? 'ok' : statusCls === 's-due' ? 'warn' : statusCls === 's-overdue' ? 'bad' : statusCls === 's-complete' ? 'done' : 'ok';
+  }
+  function dlRow(k, v) {
+    if (!v) return '';
+    return '<dt>' + esc(k) + '</dt><dd>' + esc(v) + '</dd>';
+  }
+  function vital(k, v) {
+    if (!v) return '';
+    return '<div class="hc-vt"><div class="hc-vtk">' + esc(k) + '</div><div class="hc-vtv">' + esc(v) + '</div></div>';
+  }
+
+  // ── Adaptive vaccine block: 0 → empty state, 1–2 → cards, 3+ → ledger ──
+  var vaxCount = d.vaccines.length;
+  var vaxBlock;
+  if (vaxCount === 0) {
+    vaxBlock = '<div class="hc-sec hc-full">'
+      + '<div class="hc-sh"><span class="hc-sn">03</span><span class="hc-st">Vaccination history</span><span class="hc-sm">No entries on record</span></div>'
+      + '<div class="hc-empty"><h4>No vaccinations recorded yet</h4>'
+      + '<p>Once you add a certificate from your Vetovo dashboard it will appear here &middot; vetovo.in</p></div>'
+      + '</div>';
+  } else if (vaxCount <= 2) {
+    var cards = d.vaccines.map(function(v) {
+      var nextVal = v.next ? v.next : (v.statusCls === 's-complete' ? 'Fully vaccinated' : '&mdash;');
+      return '<div class="hc-vc">'
+        + '<div class="hc-vcn">' + esc(v.name || 'Vaccine') + '</div>'
+        + '<div class="hc-vcs">' + esc([v.date, v.clinic, v.vet ? 'Dr. ' + v.vet : ''].filter(Boolean).join(' · ')) + '</div>'
+        + '<div class="hc-vcg">'
+        + '<div><div class="hc-vck">Administered</div><div class="hc-vcv">' + esc(v.date || '—') + '</div></div>'
+        + '<div><div class="hc-vck">Next due</div><div class="hc-vcv">' + nextVal + ' <span class="hc-pip ' + pipCls(v.statusCls) + '">' + esc(v.status) + '</span></div></div>'
+        + '<div><div class="hc-vck">Clinic</div><div class="hc-vcv">' + esc(v.clinic || '—') + '</div></div>'
+        + '<div><div class="hc-vck">Batch</div><div class="hc-vcv">' + esc(v.batch || '—') + '</div></div>'
+        + '</div></div>';
+    }).join('');
+    vaxBlock = '<div class="hc-sec hc-full">'
+      + '<div class="hc-sh"><span class="hc-sn">03</span><span class="hc-st">Vaccination history</span><span class="hc-sm">Verified entries &middot; ' + vaxCount + ' of ' + vaxCount + '</span></div>'
+      + '<div class="hc-vcs-wrap' + (vaxCount === 2 ? ' hc-vcs2' : '') + '">' + cards + '</div>'
+      + '</div>';
+  } else {
+    var rows = d.vaccines.map(function(v) {
+      var nextVal = v.next || (v.statusCls === 's-complete' ? 'Complete' : '—');
+      return '<tr>'
+        + '<td><div class="hc-vcn">' + esc(v.name || 'Vaccine') + '</div>'
+        + (v.batch ? '<div class="hc-vcs">Batch: ' + esc(v.batch) + '</div>' : '') + '</td>'
+        + '<td><span class="hc-date">' + esc(v.date || '—') + '</span></td>'
+        + '<td><span class="hc-date">' + esc(nextVal) + '</span></td>'
+        + '<td>' + esc(v.clinic || '—') + '</td>'
+        + '<td><span class="hc-pip ' + pipCls(v.statusCls) + '">' + esc(v.status) + '</span></td>'
+        + '</tr>';
+    }).join('');
+    vaxBlock = '<div class="hc-sec hc-full">'
+      + '<div class="hc-sh"><span class="hc-sn">03</span><span class="hc-st">Vaccination history</span><span class="hc-sm">Verified entries &middot; ' + vaxCount + ' of ' + vaxCount + '</span></div>'
+      + '<table class="hc-ledger"><thead><tr>'
+      + '<th style="width:28%">Vaccine</th><th style="width:16%">Administered</th>'
+      + '<th style="width:16%">Next due</th><th style="width:26%">Clinic</th><th style="width:14%">Status</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table>'
+      + '</div>';
+  }
+
+  // ── Care notes — real form data, always 3 columns ──
+  var careItems = [
+    { k: 'Deworming',         v: dwDone  ? (dwMed  || 'Done') + (dwDate  ? ' &middot; ' + dwDate  : '') + (dwNext  ? ' &middot; Next: ' + dwNext  : '') : 'Not recorded' },
+    { k: 'Flea &amp; tick',   v: flDone  ? (flMed  || 'Done') + (flNext  ? ' &middot; Next: ' + flNext  : '')                                           : 'Not recorded' },
+    { k: 'Emergency contact', v: esc(d.emg) || 'Not provided' }
+  ];
+  var careHTML = careItems.map(function(item) {
+    return '<div class="hc-ci"><div class="hc-ck">' + item.k + '</div><div class="hc-cv">' + item.v + '</div></div>';
+  }).join('');
+
+  // ── Page 1 ──
+  var breedLine = [d.gender, d.breed, calcAge(d.dob)].filter(Boolean).join(' · ');
+  var photoHTML = petPhotoData
+    ? '<img src="' + petPhotoData + '" alt="' + esc(d.petName) + '" style="width:100%;height:100%;object-fit:cover;display:block;">'
+    : '<span class="hc-ph">No photo</span>';
+
+  var page1 = '<div class="hc-page">'
+    + '<header class="hc-head">'
+      + '<div class="hc-wm"><span class="hc-brand">Vetovo</span><span class="hc-tagline">&mdash; Pet Health Registry &middot; by Animitr</span></div>'
+      + '<div class="hc-dm"><span class="hc-doctype">Pet Health Card</span><span class="hc-uid">' + esc(d.uid) + '</span></div>'
+    + '</header>'
+    + '<section class="hc-sub">'
+      + '<div class="hc-portrait">' + photoHTML + '</div>'
+      + '<div class="hc-id">'
+        + '<div class="hc-ey">Registered subject</div>'
+        + '<h2 class="hc-name">' + esc(d.petName) + '</h2>'
+        + (breedLine ? '<div class="hc-bl">' + esc(breedLine) + '</div>' : '')
+        + '<div class="hc-vitals">'
+          + vital('Microchip', d.chip)
+          + vital('Weight', d.weight ? d.weight + ' kg' : '')
+          + vital('Color', d.color)
+          + vital('Sterilised', d.ster)
+        + '</div>'
+      + '</div>'
+      + '<div class="hc-verify">'
+        + '<div class="hc-qrw"><canvas id="pdfQrCanvas" width="108" height="108"></canvas></div>'
+        + '<p class="hc-scan">Scan to verify<br>vetovo.in/pets/' + esc(d.uid) + '</p>'
+      + '</div>'
+    + '</section>'
+    + '<section class="hc-rec">'
+      + '<div class="hc-sec">'
+        + '<div class="hc-sh"><span class="hc-sn">01</span><span class="hc-st">Owner of record</span><span class="hc-sm">Primary contact</span></div>'
+        + '<dl class="hc-dl">'
+          + dlRow('Name',      d.ownerName)
+          + dlRow('WhatsApp',  d.ownerWa ? '+91 ' + d.ownerWa : '')
+          + dlRow('City',      d.ownerCity)
+          + dlRow('Email',     ownerEmail)
+          + dlRow('Address',   ownerAddr)
+        + '</dl>'
+        + '<div class="hc-sh" style="margin-top:13px"><span class="hc-sn">02b</span><span class="hc-st">Sterilisation</span></div>'
+        + '<dl class="hc-dl">'
+          + dlRow('Status', d.ster)
+          + dlRow('Date',   d.sterDate)
+          + dlRow('Clinic', d.sterClinic)
+          + dlRow('Vet',    sterVet)
+        + '</dl>'
+      + '</div>'
+      + '<div class="hc-sec">'
+        + '<div class="hc-sh"><span class="hc-sn">02</span><span class="hc-st">Medical profile</span><span class="hc-sm">As declared</span></div>'
+        + '<dl class="hc-dl">'
+          + dlRow('Allergies',  allergies)
+          + dlRow('Conditions', chronic)
+          + dlRow('Surgeries',  surgeries)
+          + dlRow('Blood type', bloodType)
+          + dlRow('Vet notes',  vetNotes)
+        + '</dl>'
+        + (!allergies && !chronic && !surgeries && !bloodType && !vetNotes ? '<div class="hc-none">None recorded</div>' : '')
+      + '</div>'
+      + vaxBlock
+      + '<div class="hc-care hc-full">' + careHTML + '</div>'
+    + '</section>'
+    + '<footer class="hc-foot">'
+      + '<div class="hc-legal">This document summarises records voluntarily submitted by the owner. It is not a substitute for clinical examination. Verify authenticity by scanning the QR or visiting vetovo.in</div>'
+      + '<div class="hc-stamp"><strong>Issued ' + today + '</strong>Page 1 of ' + totalPages + ' &middot; Vetovo Registry</div>'
+    + '</footer>'
+  + '</div>';
+
+  // ── Cert scan pages ──
+  var certPagesHtml = certImages.map(function(cp, idx) {
+    return '<div class="hc-cert-page">'
+      + '<header class="hc-ch">'
+        + '<div><div class="hc-cey">Attached document &middot; 0' + (idx + 1) + '</div><h2 class="hc-ct">' + esc(cp.label) + '</h2></div>'
+        + '<div class="hc-cr"><strong>' + esc(d.petName) + ' &middot; ' + esc(d.uid) + '</strong>' + esc(cp.name) + '</div>'
+      + '</header>'
+      + '<div class="hc-cb">'
+        + '<div class="hc-ctag">' + esc(cp.name) + '</div>'
+        + '<img src="' + cp.dataUrl + '" class="hc-cimg" alt="Certificate">'
+        + '<p class="hc-cdis">Original certificate uploaded and declared authentic by the registered owner &middot; Vetovo ID: ' + esc(d.uid) + ' &middot; ' + today + '</p>'
+      + '</div>'
+      + '<footer class="hc-cf">'
+        + '<div>Vetovo does not independently verify authenticity of uploaded certificates.</div>'
+        + '<div>Page ' + (idx + 2) + ' of ' + totalPages + ' &middot; Vetovo Registry</div>'
+      + '</footer>'
+    + '</div>';
+  }).join('');
+
+  // ── Scoped CSS injected with the template ──
+  var css = [
+    '.hc-page,.hc-cert-page{width:794px;height:1123px;background:#fff;position:relative;overflow:hidden;font-family:"DM Sans",-apple-system,sans-serif;font-size:10.5px;line-height:1.45;color:#0F1115;box-sizing:border-box}',
+    '.hc-page::before,.hc-cert-page::before{content:"";position:absolute;top:0;left:0;width:4px;height:86px;background:#FF6B35}',
+    // Masthead
+    '.hc-head{padding:30px 52px 15px;display:grid;grid-template-columns:1fr auto;align-items:end;border-bottom:1px solid #E8E4DE;gap:16px}',
+    '.hc-wm{display:flex;align-items:baseline;gap:8px}',
+    '.hc-brand{font-family:Georgia,"Times New Roman",serif;font-size:24px;font-weight:600;letter-spacing:-0.02em;color:#0F1115}',
+    '.hc-brand::first-letter{color:#FF6B35}',
+    '.hc-tagline{font-size:9px;color:#6B7280;letter-spacing:0.03em}',
+    '.hc-dm{text-align:right}',
+    '.hc-doctype{display:block;font-size:7.5px;letter-spacing:0.16em;text-transform:uppercase;color:#6B7280;margin-bottom:3px;font-weight:500;font-family:"Courier New",monospace}',
+    '.hc-uid{font-size:9.5px;font-weight:500;color:#2D3039;font-family:"Courier New",monospace}',
+    // Subject band
+    '.hc-sub{padding:18px 52px;display:grid;grid-template-columns:176px 1fr 124px;gap:22px;align-items:start;border-bottom:1px solid #E8E4DE}',
+    '.hc-portrait{width:176px;height:176px;border-radius:4px;overflow:hidden;background:#F0EDE8;border:1px solid #E8E4DE;display:flex;align-items:center;justify-content:center}',
+    '.hc-ph{font-size:10px;color:#9CA3AF;font-style:italic}',
+    '.hc-ey{font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:#FF6B35;font-weight:500;margin-bottom:5px;font-family:"Courier New",monospace}',
+    '.hc-name{font-family:Georgia,"Times New Roman",serif;font-size:38px;font-weight:600;line-height:1;letter-spacing:-0.02em;color:#0F1115;margin:0 0 4px;text-transform:capitalize}',
+    '.hc-bl{font-size:11.5px;color:#6B7280;font-style:italic;margin-bottom:14px}',
+    '.hc-vitals{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #E8E4DE}',
+    '.hc-vt{padding:7px 10px 7px 0;border-right:1px solid #E8E4DE}',
+    '.hc-vt:nth-child(even){padding-left:10px;border-right:none}',
+    '.hc-vtk{font-size:7.5px;letter-spacing:0.12em;text-transform:uppercase;color:#6B7280;font-weight:500;margin-bottom:2px;font-family:"Courier New",monospace}',
+    '.hc-vtv{font-size:10.5px;font-weight:500;color:#0F1115}',
+    '.hc-verify{border:1px solid #E8E4DE;border-radius:4px;padding:10px;background:#FAFAF8;text-align:center}',
+    '.hc-qrw{width:108px;height:108px;margin:0 auto 6px;background:#fff;display:flex;align-items:center;justify-content:center}',
+    '.hc-scan{font-size:7.5px;letter-spacing:0.1em;text-transform:uppercase;color:#6B7280;margin:0;font-family:"Courier New",monospace;line-height:1.6}',
+    // Records grid
+    '.hc-rec{padding:15px 52px 80px;display:grid;grid-template-columns:1.1fr 1fr;grid-auto-rows:min-content;gap:15px 30px;border-top:1px solid #E8E4DE;margin-top:4px}',
+    '.hc-full{grid-column:1/-1}',
+    '.hc-sh{display:flex;align-items:baseline;gap:7px;margin-bottom:9px;padding-bottom:5px;border-bottom:1px solid #E8E4DE}',
+    '.hc-sn{font-size:7.5px;font-weight:700;color:#FF6B35;font-family:"Courier New",monospace;letter-spacing:0.1em}',
+    '.hc-st{font-size:10.5px;font-weight:600;color:#0F1115;letter-spacing:-0.01em;flex:1}',
+    '.hc-sm{font-size:8.5px;color:#6B7280}',
+    '.hc-dl{display:grid;grid-template-columns:auto 1fr;gap:4px 10px}',
+    '.hc-dl dt{font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:#6B7280;font-weight:500;font-family:"Courier New",monospace;padding-top:1px;white-space:nowrap}',
+    '.hc-dl dd{font-size:10px;font-weight:500;color:#0F1115;margin:0}',
+    '.hc-none{font-size:10px;color:#6B7280;padding:4px 0}',
+    // Vaccine cards (1–2 vaccines)
+    '.hc-vcs-wrap{display:grid;gap:9px}',
+    '.hc-vcs2{grid-template-columns:1fr 1fr}',
+    '.hc-vc{border:1px solid #E8E4DE;background:#FAFAF8;border-radius:4px;padding:11px 13px;position:relative}',
+    '.hc-vc::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;background:#FF6B35;border-radius:0 2px 2px 0}',
+    '.hc-vcn{font-size:11.5px;font-weight:600;color:#0F1115;margin-bottom:2px}',
+    '.hc-vcs{font-size:8px;color:#6B7280;font-family:"Courier New",monospace;letter-spacing:0.03em;margin-bottom:8px}',
+    '.hc-vcg{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px}',
+    '.hc-vck{font-size:7.5px;letter-spacing:0.12em;text-transform:uppercase;color:#6B7280;font-weight:500;margin-bottom:2px;font-family:"Courier New",monospace}',
+    '.hc-vcv{font-size:9.5px;font-weight:500;color:#0F1115}',
+    // Vaccine empty state
+    '.hc-empty{border:1px dashed #E8E4DE;border-radius:4px;padding:20px;text-align:center;background:#FAFAF8}',
+    '.hc-empty h4{font-family:Georgia,"Times New Roman",serif;font-weight:500;font-size:14px;margin:0 0 5px;color:#0F1115}',
+    '.hc-empty p{font-size:9.5px;color:#6B7280;margin:0;line-height:1.5}',
+    // Vaccine ledger (3+ vaccines)
+    '.hc-ledger{width:100%;border-collapse:collapse}',
+    '.hc-ledger th{font-size:7.5px;letter-spacing:0.12em;text-transform:uppercase;color:#6B7280;font-weight:500;text-align:left;padding:0 7px 7px;border-bottom:1px solid #E8E4DE;font-family:"Courier New",monospace}',
+    '.hc-ledger th:first-child{padding-left:0}.hc-ledger th:last-child{text-align:right;padding-right:0}',
+    '.hc-ledger td{padding:8px 7px;border-bottom:1px solid #F0EDE8;vertical-align:top;font-size:10px}',
+    '.hc-ledger td:first-child{padding-left:0}.hc-ledger td:last-child{text-align:right;padding-right:0}',
+    '.hc-ledger tr:last-child td{border-bottom:none}',
+    '.hc-date{font-size:9.5px;font-weight:500;font-family:"Courier New",monospace}',
+    // Status pip
+    '.hc-pip{display:inline-block;padding:2px 7px;border-radius:20px;font-size:8px;font-weight:700}',
+    '.hc-pip.ok{background:#FF6B35;color:white}.hc-pip.warn{background:#FFD93D;color:#7A6000}',
+    '.hc-pip.bad{background:#DC2626;color:white}.hc-pip.done{background:#166534;color:white}',
+    // Care notes — always full-width, always 3 columns
+    '.hc-care{border-top:1px solid #E8E4DE;padding-top:11px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px}',
+    '.hc-ck{font-size:7.5px;letter-spacing:0.12em;text-transform:uppercase;color:#6B7280;font-weight:500;margin-bottom:3px;font-family:"Courier New",monospace}',
+    '.hc-cv{font-size:9.5px;color:#0F1115;line-height:1.5}',
+    // Footer
+    '.hc-foot{position:absolute;left:52px;right:52px;bottom:22px;padding-top:11px;border-top:1px solid #E8E4DE;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end}',
+    '.hc-legal{font-size:7.5px;color:#6B7280;line-height:1.6;max-width:420px}',
+    '.hc-stamp{text-align:right;font-size:7.5px;color:#6B7280;font-family:"Courier New",monospace;letter-spacing:0.08em;text-transform:uppercase;line-height:1.6}',
+    '.hc-stamp strong{display:block;color:#0F1115;font-size:8px;font-weight:600;letter-spacing:0;text-transform:none}',
+    // Cert scan pages
+    '.hc-ch{padding:26px 52px 14px;display:grid;grid-template-columns:1fr auto;align-items:end;border-bottom:1px solid #E8E4DE;gap:14px}',
+    '.hc-cey{font-size:7.5px;letter-spacing:0.16em;text-transform:uppercase;color:#6B7280;margin-bottom:4px;font-family:"Courier New",monospace}',
+    '.hc-ct{font-family:Georgia,"Times New Roman",serif;font-size:20px;font-weight:600;color:#0F1115;margin:0;letter-spacing:-0.01em}',
+    '.hc-cr{text-align:right;font-size:8.5px;color:#6B7280;font-family:"Courier New",monospace;line-height:1.6}',
+    '.hc-cr strong{display:block;color:#0F1115;font-size:9.5px;margin-bottom:2px;font-weight:600}',
+    '.hc-cb{padding:20px 52px;display:flex;flex-direction:column;align-items:center;gap:12px}',
+    '.hc-ctag{font-size:7.5px;font-weight:600;color:#6B7280;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;background:#F9FAFB;border:1px solid #E8E4DE;border-radius:20px}',
+    '.hc-cimg{max-width:690px;width:100%;border:1px solid #E8E4DE;border-radius:4px}',
+    '.hc-cdis{font-size:7.5px;color:#6B7280;text-align:center;line-height:1.7;margin:0}',
+    '.hc-cf{position:absolute;left:52px;right:52px;bottom:22px;padding-top:11px;border-top:1px solid #E8E4DE;display:flex;justify-content:space-between;font-size:7.5px;color:#6B7280;font-family:"Courier New",monospace}'
+  ].join('');
+
+  // ── Inject into off-screen template ──
+  var tpl = document.getElementById('pdfTemplate');
+  tpl.innerHTML = '<style>' + css + '</style>' + page1 + certPagesHtml;
+  tpl.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:white;z-index:-1;display:block;';
+
+  // ── Draw QR, then capture each page ──
+  setTimeout(function() {
+    var qrCanvas = document.getElementById('pdfQrCanvas');
+    if (qrCanvas) qrDraw(qrCanvas, 'https://vetovo.in/pets/' + d.uid);
+    setTimeout(function() {
+      var pages = Array.from(tpl.querySelectorAll('.hc-page, .hc-cert-page'));
+      if (!pages.length) pages = [tpl];
+      var pdf = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      var pdfW = pdf.internal.pageSize.getWidth(), pdfH = pdf.internal.pageSize.getHeight();
+      function capturePage(i) {
+        if (i >= pages.length) {
+          tpl.style.display = 'none'; tpl.innerHTML = '';
+          pdf.save('Vetovo-HealthCard-' + d.petName + '.pdf');
+          if (btn) { btn.classList.remove('loading'); btn.disabled = false; }
+          var s = document.getElementById('dlSuccess');
+          if (s) { s.classList.add('show'); s.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); setTimeout(function() { s.classList.remove('show'); }, 10000); }
+          return;
+        }
+        html2canvas(pages[i], {
+          scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', logging: false, width: 794,
+          onclone: function(doc) { doc.body.style.fontFamily = '"DM Sans",-apple-system,sans-serif'; }
+        }).then(function(canvas) {
+          if (i > 0) pdf.addPage();
+          var imgH = Math.min((canvas.height * pdfW) / canvas.width, pdfH);
+          pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pdfW, imgH);
+          capturePage(i + 1);
+        }).catch(function(err) { console.error('Capture error page ' + i, err); capturePage(i + 1); });
+      }
+      capturePage(0);
+    }, 600);
+  }, 300);
+}
+
+function shareWa(){
+  var n=document.getElementById('petName').value.trim()||'my pet';
+  var uid=window._vetovoCertData?window._vetovoCertData.uid:'';
+  var url=uid?'https://vetovo.in/pets/'+uid:'https://vetovo.in';
+  window.open('https://wa.me/?text='+encodeURIComponent('Here is '+n+'\'s verified digital health card from Vetovo: '+url),'_blank');
+}
+
+function copyLnk(){
+  var btn=document.getElementById('copyBtn');
+  var uid=window._vetovoCertData?window._vetovoCertData.uid:'';
+  var url=uid?'https://vetovo.in/pets/'+uid:'https://vetovo.in';
+  navigator.clipboard.writeText(url).then(function(){btn.textContent='Copied';setTimeout(function(){btn.textContent='Copy link';},2000);}).catch(function(){var ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);btn.textContent='Copied';setTimeout(function(){btn.textContent='Copy link';},2000);});
+}
+
+buildDots();v1();v2();v3();setDateLimits();
+</script>
+</body>
+</html>
