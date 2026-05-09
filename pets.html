@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vetovo — Pet Health Card</title>
+<meta name="description" content="Verified digital pet health card powered by Vetovo">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23FF6B35'/><text y='.9em' font-size='72' x='12'>V</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --orange:#FF6B35;--orange-light:#FFF3EE;--orange-mid:#FFD4C2;
+  --black:#0A0A0A;--grey:#6B7280;--grey-light:#F9FAFB;--border:#F0E8E3;
+  --white:#FFFFFF;--card:#FFF8F5;--red:#DC2626;
+  --radius:14px;--radius-sm:10px;
+  --shadow:0 2px 16px rgba(255,107,53,0.08);--shadow-md:0 8px 32px rgba(255,107,53,0.14);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--grey-light);color:var(--black);min-height:100vh}
+nav{background:white;border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.logo-mark{width:32px;height:32px;border-radius:9px;background:var(--orange);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:16px}
+.logo-name{font-size:17px;font-weight:700;color:var(--black)}
+.logo-by{font-size:11px;color:var(--grey);font-weight:400}
+.nav-link{font-size:13px;color:var(--orange);font-weight:600;text-decoration:none}
+
+.container{max-width:680px;margin:32px auto;padding:0 16px 60px}
+
+/* Loading state */
+.loading-wrap{text-align:center;padding:80px 24px}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:15px;color:var(--grey)}
+
+/* Error state */
+.error-wrap{text-align:center;padding:80px 24px}
+.error-icon{font-size:48px;margin-bottom:16px}
+.error-title{font-size:22px;font-weight:700;margin-bottom:8px}
+.error-sub{font-size:14px;color:var(--grey);margin-bottom:24px}
+.error-btn{display:inline-block;padding:12px 24px;background:var(--orange);color:white;border-radius:30px;text-decoration:none;font-weight:600;font-size:14px}
+
+/* Health card */
+.card{background:white;border-radius:var(--radius);box-shadow:var(--shadow-md);overflow:hidden;margin-bottom:16px}
+
+/* Top strip */
+.card-top{background:var(--orange);display:flex;align-items:stretch}
+.card-photo{width:120px;height:120px;flex-shrink:0;overflow:hidden;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.5);font-size:11px;font-weight:600;letter-spacing:0.05em}
+.card-photo img{width:120px;height:120px;object-fit:cover;display:block}
+.card-info{flex:1;padding:16px 18px;display:flex;flex-direction:column;justify-content:center}
+.card-name{font-size:26px;font-weight:800;color:white;letter-spacing:-0.02em;text-transform:capitalize;line-height:1}
+.card-meta{font-size:12px;color:rgba(255,255,255,0.8);margin-top:6px;line-height:1.6}
+.card-uid{font-size:10px;color:rgba(255,255,255,0.55);margin-top:6px;font-family:monospace}
+
+/* Verified badge */
+.verified-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:600;color:white;margin-top:8px}
+.verified-dot{width:6px;height:6px;border-radius:50%;background:#4ade80}
+
+/* Body */
+.card-body{padding:20px}
+.section{margin-bottom:20px}
+.section-title{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--orange-mid)}
+.row{display:flex;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
+.row:last-child{border-bottom:none}
+.row-key{color:var(--grey);width:110px;flex-shrink:0;font-size:12px}
+.row-val{color:var(--black);font-weight:600;flex:1}
+
+/* Vaccine pills */
+.vax-pill{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 12px;background:var(--orange-light);border-radius:var(--radius-sm);margin-bottom:8px;border-left:3px solid var(--orange)}
+.vax-name{font-size:13px;font-weight:700;color:var(--black)}
+.vax-meta{font-size:11px;color:var(--grey);margin-top:3px;line-height:1.5}
+.vax-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;margin-left:10px;flex-shrink:0}
+.s-valid{background:var(--orange);color:white}
+.s-due{background:#FFD93D;color:#7A6000}
+.s-overdue{background:#DC2626;color:white}
+
+/* Footer */
+.card-foot{background:var(--orange-light);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--orange-mid)}
+.foot-brand{font-size:13px;font-weight:800;color:var(--orange)}
+.foot-id{font-size:11px;color:var(--grey);margin-top:1px}
+.foot-date{font-size:11px;color:var(--grey);text-align:right}
+
+/* Action buttons */
+.actions{display:flex;gap:10px;margin-top:16px}
+.btn-wa{flex:1;padding:13px;background:#25D366;color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;text-align:center;text-decoration:none;display:block}
+.btn-copy{flex:1;padding:13px;background:var(--border);color:var(--black);border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;text-align:center}
+.btn-copy:hover{background:#D0D7DE}
+
+/* Disclaimer */
+.disclaimer{font-size:11px;color:var(--grey);text-align:center;margin-top:16px;line-height:1.6;padding:12px;background:white;border-radius:var(--radius-sm);border:1px solid var(--border)}
+
+/* No data */
+.no-data{font-size:13px;color:var(--grey);font-style:italic}
+
+@media(max-width:480px){
+  .card-photo{width:90px;height:90px}
+  .card-photo img{width:90px;height:90px}
+  .card-name{font-size:20px}
+  .actions{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="https://vetovo.in" class="logo">
+    <div class="logo-mark">V</div>
+    <div><div class="logo-name">Vetovo <span class="logo-by">by Animitr</span></div></div>
+  </a>
+  <a href="https://vetovo.in" class="nav-link">Create Health Card</a>
+</nav>
+
+<div class="container">
+  <div class="loading-wrap" id="loading">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading health card...</div>
+  </div>
+
+  <div class="error-wrap" id="error" style="display:none">
+    <div class="error-icon">🐾</div>
+    <div class="error-title">Health card not found</div>
+    <div class="error-sub">This link may be invalid or the health card may not exist yet.</div>
+    <a href="https://vetovo.in" class="error-btn">Create a Health Card</a>
+  </div>
+
+  <div id="content" style="display:none">
+    <div class="card">
+      <div class="card-top">
+        <div class="card-photo" id="petPhoto">NO PHOTO</div>
+        <div class="card-info">
+          <div class="card-name" id="petName">-</div>
+          <div class="card-meta" id="petMeta">-</div>
+          <div class="verified-badge"><div class="verified-dot"></div>Vetovo Verified</div>
+          <div class="card-uid" id="petUid">-</div>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="section">
+          <div class="section-title">Owner Details</div>
+          <div class="row"><span class="row-key">Name</span><span class="row-val" id="ownerName">-</span></div>
+          <div class="row"><span class="row-key">City</span><span class="row-val" id="ownerCity">-</span></div>
+          <div class="row" id="waRow"><span class="row-key">WhatsApp</span><span class="row-val" id="ownerWa">-</span></div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Pet Details</div>
+          <div class="row"><span class="row-key">Species</span><span class="row-val" id="petSpecies">-</span></div>
+          <div class="row"><span class="row-key">Breed</span><span class="row-val" id="petBreed">-</span></div>
+          <div class="row"><span class="row-key">Gender</span><span class="row-val" id="petGender">-</span></div>
+          <div class="row" id="dobRow"><span class="row-key">Date of Birth</span><span class="row-val" id="petDob">-</span></div>
+          <div class="row" id="wtRow"><span class="row-key">Weight</span><span class="row-val" id="petWeight">-</span></div>
+          <div class="row" id="colorRow"><span class="row-key">Color</span><span class="row-val" id="petColor">-</span></div>
+          <div class="row" id="chipRow"><span class="row-key">Microchip</span><span class="row-val" id="petChip">-</span></div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Vaccination History</div>
+          <div id="vaxList"><div class="no-data">No vaccines recorded</div></div>
+        </div>
+
+        <div class="section" id="sterSection" style="display:none">
+          <div class="section-title">Sterilisation</div>
+          <div class="row"><span class="row-key">Status</span><span class="row-val" id="sterStatus">-</span></div>
+          <div class="row" id="sterDateRow" style="display:none"><span class="row-key">Date</span><span class="row-val" id="sterDate">-</span></div>
+          <div class="row" id="sterClinicRow" style="display:none"><span class="row-key">Clinic</span><span class="row-val" id="sterClinic">-</span></div>
+        </div>
+      </div>
+
+      <div class="card-foot">
+        <div>
+          <div class="foot-brand">Vetovo</div>
+          <div class="foot-id" id="footId">-</div>
+        </div>
+        <div class="foot-date" id="footDate">-</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a class="btn-wa" id="waShare" href="#" target="_blank">Share on WhatsApp</a>
+      <button class="btn-copy" id="copyBtn" onclick="copyLink()">Copy link</button>
+    </div>
+
+    <div class="disclaimer">
+      This health card is self-declared by the registered pet owner. Vetovo does not independently verify the medical information. Always consult a registered veterinarian for clinical decisions.
+      <br><br>
+      <strong>Powered by Vetovo by Animitr</strong> — India's Pet Health Platform
+    </div>
+  </div>
+</div>
+
+<script>
+function getVetovoId() {
+  var path = window.location.pathname;
+  var parts = path.split('/');
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i].startsWith('VTV-')) return parts[i];
+  }
+  return null;
+}
+
+function setText(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = val || '-';
+}
+
+function showRow(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.style.display = val ? '' : 'none';
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  var parts = iso.split('-');
+  if (parts.length !== 3) return iso;
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return parts[2] + ' ' + months[parseInt(parts[1]) - 1] + ' ' + parts[0];
+}
+
+function getVaxStatus(nextDue) {
+  if (!nextDue) return { text: 'Valid', cls: 's-valid' };
+  var today = new Date();
+  var nd = new Date(nextDue);
+  var diff = (nd - today) / 864e5;
+  if (diff < 0) return { text: 'Overdue', cls: 's-overdue' };
+  if (diff < 30) return { text: 'Due soon', cls: 's-due' };
+  return { text: 'Valid', cls: 's-valid' };
+}
+
+function loadCard() {
+  var id = getVetovoId();
+  if (!id) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+    return;
+  }
+
+  fetch('https://vetovo.in/api/pets/' + id)
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.error) throw new Error(data.error);
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+
+      // Pet name and meta
+      setText('petName', data.pet_name);
+      if (data.pet_photo_path) { var ph = document.getElementById('petPhoto'); ph.innerHTML = '<img src="' + data.pet_photo_path + '" alt="Pet photo">'; }
+      document.getElementById('petUid').textContent = 'ID: ' + data.vetovo_id;
+
+      var metaParts = [data.species, data.breed, data.gender].filter(Boolean);
+      setText('petMeta', metaParts.join('  |  '));
+
+      // Owner
+      setText('ownerName', data.owner_name);
+      setText('ownerCity', data.owner_city);
+      if (data.owner_whatsapp) {
+        setText('ownerWa', '+91 ' + data.owner_whatsapp);
+      } else {
+        document.getElementById('waRow').style.display = 'none';
+      }
+
+      // Pet details
+      setText('petSpecies', data.species);
+      setText('petBreed', data.breed);
+      setText('petGender', data.gender);
+
+      if (data.dob) { setText('petDob', formatDate(data.dob)); }
+      else { showRow('dobRow', false); }
+
+      if (data.weight) { setText('petWeight', data.weight + ' kg'); }
+      else { showRow('wtRow', false); }
+
+      if (data.color) { setText('petColor', data.color); }
+      else { showRow('colorRow', false); }
+
+      if (data.microchip) { setText('petChip', data.microchip); }
+      else { showRow('chipRow', false); }
+
+      // Vaccinations
+      var vaxList = document.getElementById('vaxList');
+      vaxList.innerHTML = '';
+      var vaccines = data.vaccinations || [];
+      if (vaccines.length === 0) {
+        vaxList.innerHTML = '<div class="no-data">No vaccines recorded</div>';
+      } else {
+        vaccines.forEach(function(v) {
+          var name = v.name || v.vaccine_name || 'Vaccine';
+          var given = v.date || v.date_given || '';
+          var next = v.next || v.next_due || '';
+          var clinic = v.clinic || '';
+          var status = getVaxStatus(next);
+
+          var pill = document.createElement('div');
+          pill.className = 'vax-pill';
+
+          var left = document.createElement('div');
+          var nm = document.createElement('div');
+          nm.className = 'vax-name';
+          nm.textContent = name;
+          var meta = document.createElement('div');
+          meta.className = 'vax-meta';
+          var parts = [];
+          if (given) parts.push('Given: ' + formatDate(given));
+          if (next) parts.push('Next due: ' + formatDate(next));
+          if (clinic) parts.push(clinic);
+          meta.textContent = parts.join('  |  ');
+          left.appendChild(nm);
+          left.appendChild(meta);
+
+          var badge = document.createElement('div');
+          badge.className = 'vax-badge ' + status.cls;
+          badge.textContent = status.text;
+
+          pill.appendChild(left);
+          pill.appendChild(badge);
+          vaxList.appendChild(pill);
+        });
+      }
+
+      // Cert images
+      if (data.cert_paths && data.cert_paths.length > 0) {
+        var certHtml = '<div style="margin-top:16px"><div style="font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Uploaded Certificates</div>';
+        data.cert_paths.forEach(function(c) {
+          certHtml += '<div style="margin-bottom:10px"><div style="font-size:11px;color:var(--grey);margin-bottom:4px">' + c.name + '</div><img src="' + c.path + '" style="width:100%;border-radius:8px;border:1px solid #eee" alt="Certificate"></div>';
+        });
+        certHtml += '</div>';
+        document.getElementById('vaxList').insertAdjacentHTML('afterend', certHtml);
+      }
+
+      // Sterilisation
+      if (data.sterilised && data.sterilised !== 'Not recorded' && data.sterilised !== '') {
+        document.getElementById('sterSection').style.display = '';
+        setText('sterStatus', data.sterilised);
+        if (data.sterilise_date) {
+          setText('sterDate', formatDate(data.sterilise_date));
+          document.getElementById('sterDateRow').style.display = '';
+        }
+        if (data.sterilise_clinic) {
+          setText('sterClinic', data.sterilise_clinic);
+          document.getElementById('sterClinicRow').style.display = '';
+        }
+      }
+
+      // Footer
+      setText('footId', 'ID: ' + data.vetovo_id);
+      if (data.created_at) {
+        var d = new Date(data.created_at);
+        document.getElementById('footDate').textContent = 'Generated: ' + d.toLocaleDateString('en-IN', {day:'2-digit',month:'long',year:'numeric'});
+      }
+
+      // WhatsApp share
+      var url = 'https://vetovo.in/pets/' + data.vetovo_id;
+      var msg = 'Here is ' + data.pet_name + "'s verified digital health card on Vetovo: " + url;
+      document.getElementById('waShare').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+
+    })
+    .catch(function(err) {
+      console.error(err);
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+    });
+}
+
+function copyLink() {
+  var url = window.location.href;
+  var btn = document.getElementById('copyBtn');
+  navigator.clipboard.writeText(url).then(function() {
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy link'; }, 2000);
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = url;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy link'; }, 2000);
+  });
+}
+
+loadCard();
+</script>
+</body>
+</html>
