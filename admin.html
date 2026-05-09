@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vetovo Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080808;
+    --surface: #111111;
+    --surface2: #181818;
+    --border: #222222;
+    --gold: #C9922A;
+    --gold2: #E8B84B;
+    --gold-grad: linear-gradient(90deg, #C9922A, #E8B84B);
+    --text: #f0f0f0;
+    --muted: #888;
+    --danger: #e94560;
+    --green: #2ecc71;
+    --radius: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Montserrat', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── LOCK SCREEN ── */
+  #lockScreen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .lock-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 44px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+
+  .lock-logo {
+    font-family: 'Oswald', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .lock-logo span {
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .lock-sub {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 36px;
+  }
+
+  .lock-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: left;
+    margin-bottom: 8px;
+  }
+
+  .lock-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    outline: none;
+    letter-spacing: 0.15em;
+    transition: border 0.2s;
+    margin-bottom: 16px;
+  }
+  .lock-input:focus { border-color: var(--gold); }
+
+  .lock-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--gold-grad);
+    border: none;
+    border-radius: 8px;
+    color: #000;
+    font-family: 'Oswald', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .lock-btn:hover { opacity: 0.9; }
+  .lock-btn:active { transform: scale(0.98); }
+
+  .lock-error {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--danger);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .lock-error.show { opacity: 1; }
+
+  /* ── MAIN DASHBOARD ── */
+  #dashboard {
+    display: none;
+    min-height: 100vh;
+  }
+
+  /* Navbar */
+  .nav {
+    position: sticky;
+    top: 0;
+    background: rgba(8,8,8,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 100;
+  }
+
+  .nav-logo {
+    font-family: 'Oswald', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+  .nav-logo span {
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .nav-badge {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  .nav-logout {
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    background: none;
+    border: none;
+    font-family: 'Montserrat', sans-serif;
+  }
+  .nav-logout:hover { color: var(--danger); }
+
+  /* Main content */
+  .main {
+    padding: 32px;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--gold-grad);
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .stat-value {
+    font-family: 'Oswald', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+  }
+
+  .stat-sub {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    align-items: center;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .search-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px 12px 40px;
+    color: var(--text);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border 0.2s;
+  }
+  .search-input:focus { border-color: var(--gold); }
+  .search-input::placeholder { color: var(--muted); }
+
+  .filter-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+    min-width: 140px;
+  }
+  .filter-select:focus { border-color: var(--gold); }
+  .filter-select option { background: var(--surface2); }
+
+  .refresh-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    color: var(--muted);
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .refresh-btn:hover { color: var(--gold); border-color: var(--gold); }
+
+  /* Table */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .table-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .table-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .table-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    padding: 12px 24px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s;
+  }
+  thead th:hover { color: var(--gold); }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  tbody tr:hover { background: rgba(201,146,42,0.05); }
+  tbody tr:last-child { border-bottom: none; }
+
+  td {
+    padding: 14px 24px;
+    font-size: 12.5px;
+    vertical-align: middle;
+  }
+
+  .td-id {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  .td-name { font-weight: 600; }
+
+  .td-species {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .sp-dog { background: rgba(201,146,42,0.15); color: var(--gold2); }
+  .sp-cat { background: rgba(100,180,255,0.12); color: #64b4ff; }
+  .sp-other { background: rgba(255,255,255,0.08); color: var(--muted); }
+
+  .td-owner { color: var(--text); }
+
+  .td-phone {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .td-city { color: var(--muted); font-size: 12px; }
+
+  .td-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .td-action {
+    text-align: right;
+  }
+
+  .view-btn {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: rgba(201,146,42,0.1);
+    border: 1px solid rgba(201,146,42,0.25);
+    border-radius: 6px;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    font-family: 'Montserrat', sans-serif;
+  }
+  .view-btn:hover { background: rgba(201,146,42,0.2); border-color: var(--gold); }
+
+  /* Empty / Loading */
+  .empty-state {
+    padding: 60px 24px;
+    text-align: center;
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-text { color: var(--muted); font-size: 13px; }
+
+  .loading-row td {
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Pagination */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .page-info {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .page-btns { display: flex; gap: 6px; }
+
+  .page-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 14px;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Montserrat', sans-serif;
+  }
+  .page-btn:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
+  .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .page-btn.active { background: rgba(201,146,42,0.15); border-color: var(--gold); color: var(--gold); }
+
+  /* Pulse animation for live indicator */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .live-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+    vertical-align: middle;
+  }
+
+  @media (max-width: 900px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .main { padding: 16px; }
+    .nav { padding: 0 16px; }
+    td:nth-child(6), th:nth-child(6) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div id="lockScreen">
+  <div class="lock-card">
+    <div class="lock-logo">VETO<span>VO</span></div>
+    <div class="lock-sub">Admin Panel</div>
+    <div class="lock-label">Password</div>
+    <input type="password" class="lock-input" id="passInput" placeholder="••••••••" autocomplete="off">
+    <button class="lock-btn" onclick="unlock()">ENTER</button>
+    <div class="lock-error" id="lockError">Incorrect password. Try again.</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <nav class="nav">
+    <div class="nav-logo">VETO<span>VO</span></div>
+    <div class="nav-badge"><span class="live-dot"></span>Live Data</div>
+    <button class="nav-logout" onclick="logout()">Logout</button>
+  </nav>
+
+  <div class="main">
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total Pets</div>
+        <div class="stat-value" id="statTotal">—</div>
+        <div class="stat-sub">Registered health cards</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Dogs</div>
+        <div class="stat-value" id="statDogs">—</div>
+        <div class="stat-sub">Canine records</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cats</div>
+        <div class="stat-value" id="statCats">—</div>
+        <div class="stat-sub">Feline records</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Latest</div>
+        <div class="stat-value" id="statLatest" style="font-size:18px;margin-top:4px">—</div>
+        <div class="stat-sub">Most recent registration</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search by name, owner, city, ID..." oninput="filterTable()">
+      </div>
+      <select class="filter-select" id="speciesFilter" onchange="filterTable()">
+        <option value="">All Species</option>
+        <option value="Dog">Dogs</option>
+        <option value="Cat">Cats</option>
+        <option value="Other">Other</option>
+      </select>
+      <button class="refresh-btn" onclick="loadPets()" title="Refresh">↻</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">Pet Records</div>
+        <div class="table-count" id="tableCount">—</div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortTable('vetovo_id')">VTV ID</th>
+            <th onclick="sortTable('pet_name')">Pet Name</th>
+            <th onclick="sortTable('species')">Species</th>
+            <th onclick="sortTable('owner_name')">Owner</th>
+            <th onclick="sortTable('owner_whatsapp')">Phone</th>
+            <th onclick="sortTable('owner_city')">City</th>
+            <th onclick="sortTable('created_at')">Registered</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr class="loading-row"><td colspan="8">Loading records...</td></tr>
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <div class="page-info" id="pageInfo">—</div>
+        <div class="page-btns" id="pageBtns"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const PASS = 'Vetovo@2026';
+  const PER_PAGE = 15;
+
+  let allPets = [];
+  let filtered = [];
+  let currentPage = 1;
+  let sortKey = 'created_at';
+  let sortDir = -1;
+
+  // ── AUTH ──
+  document.getElementById('passInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') unlock();
+  });
+
+  function unlock() {
+    var val = document.getElementById('passInput').value;
+    if (val === PASS) {
+      document.getElementById('lockScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      loadPets();
+    } else {
+      var err = document.getElementById('lockError');
+      err.classList.add('show');
+      document.getElementById('passInput').value = '';
+      setTimeout(function() { err.classList.remove('show'); }, 3000);
+    }
+  }
+
+  function logout() {
+    document.getElementById('lockScreen').style.display = 'flex';
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('passInput').value = '';
+  }
+
+  // ── DATA ──
+  function loadPets() {
+    document.getElementById('tableBody').innerHTML = '<tr class="loading-row"><td colspan="8">Loading records...</td></tr>';
+
+    fetch('https://vetovo.in/api/admin/pets')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        allPets = data;
+        updateStats(data);
+        filterTable();
+      })
+      .catch(function() {
+        document.getElementById('tableBody').innerHTML = '<tr class="loading-row"><td colspan="8">Failed to load. Check API connection.</td></tr>';
+      });
+  }
+
+  function updateStats(data) {
+    document.getElementById('statTotal').textContent = data.length;
+    document.getElementById('statDogs').textContent = data.filter(function(p) { return p.species === 'Dog'; }).length;
+    document.getElementById('statCats').textContent = data.filter(function(p) { return p.species === 'Cat'; }).length;
+
+    if (data.length > 0) {
+      var sorted = data.slice().sort(function(a, b) { return new Date(b.created_at) - new Date(a.created_at); });
+      var latest = sorted[0];
+      var d = new Date(latest.created_at);
+      document.getElementById('statLatest').textContent = d.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+    }
+  }
+
+  function filterTable() {
+    var q = document.getElementById('searchInput').value.toLowerCase();
+    var sp = document.getElementById('speciesFilter').value;
+
+    filtered = allPets.filter(function(p) {
+      var matchQ = !q ||
+        (p.pet_name || '').toLowerCase().includes(q) ||
+        (p.owner_name || '').toLowerCase().includes(q) ||
+        (p.owner_city || '').toLowerCase().includes(q) ||
+        (p.vetovo_id || '').toLowerCase().includes(q) ||
+        (p.owner_whatsapp || '').includes(q);
+      var matchSp = !sp || p.species === sp;
+      return matchQ && matchSp;
+    });
+
+    sortData();
+    currentPage = 1;
+    renderTable();
+  }
+
+  function sortTable(key) {
+    if (sortKey === key) { sortDir *= -1; }
+    else { sortKey = key; sortDir = 1; }
+    sortData();
+    renderTable();
+  }
+
+  function sortData() {
+    filtered.sort(function(a, b) {
+      var va = a[sortKey] || '';
+      var vb = b[sortKey] || '';
+      if (sortKey === 'created_at') {
+        return sortDir * (new Date(va) - new Date(vb));
+      }
+      return sortDir * va.toString().localeCompare(vb.toString());
+    });
+  }
+
+  function renderTable() {
+    var total = filtered.length;
+    var pages = Math.ceil(total / PER_PAGE);
+    var start = (currentPage - 1) * PER_PAGE;
+    var end = Math.min(start + PER_PAGE, total);
+    var slice = filtered.slice(start, end);
+
+    document.getElementById('tableCount').textContent = total + ' records';
+    document.getElementById('pageInfo').textContent = total === 0 ? '0 records' : 'Showing ' + (start+1) + '–' + end + ' of ' + total;
+
+    if (slice.length === 0) {
+      document.getElementById('tableBody').innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🐾</div><div class="empty-text">No pets found</div></div></td></tr>';
+    } else {
+      document.getElementById('tableBody').innerHTML = slice.map(function(p) {
+        var spClass = p.species === 'Dog' ? 'sp-dog' : p.species === 'Cat' ? 'sp-cat' : 'sp-other';
+        var date = p.created_at ? new Date(p.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'2-digit' }) : '—';
+        return '<tr onclick="openPet(\'' + p.vetovo_id + '\')">' +
+          '<td class="td-id">' + (p.vetovo_id || '—') + '</td>' +
+          '<td class="td-name">' + (p.pet_name || '—') + '</td>' +
+          '<td><span class="td-species ' + spClass + '">' + (p.species || '—') + '</span></td>' +
+          '<td class="td-owner">' + (p.owner_name || '—') + '</td>' +
+          '<td class="td-phone">' + (p.owner_whatsapp ? '+91 ' + p.owner_whatsapp : '—') + '</td>' +
+          '<td class="td-city">' + (p.owner_city || '—') + '</td>' +
+          '<td class="td-date">' + date + '</td>' +
+          '<td class="td-action"><a class="view-btn" href="https://vetovo.in/pets/' + p.vetovo_id + '" target="_blank" onclick="event.stopPropagation()">View →</a></td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    // Pagination
+    var btns = '';
+    var maxBtns = 7;
+    for (var i = 1; i <= Math.min(pages, maxBtns); i++) {
+      btns += '<button class="page-btn' + (i === currentPage ? ' active' : '') + '" onclick="goPage(' + i + ')">' + i + '</button>';
+    }
+    if (pages > maxBtns) btns += '<button class="page-btn" disabled>...</button>';
+    document.getElementById('pageBtns').innerHTML = btns;
+  }
+
+  function goPage(n) {
+    currentPage = n;
+    renderTable();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function openPet(id) {
+    window.open('https://vetovo.in/pets/' + id, '_blank');
+  }
+</script>
+</body>
+</html>
