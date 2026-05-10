@@ -152,13 +152,17 @@ def create_pet():
                 owner_city, owner_address, owner_pincode, emergency_contact,
                 vaccinations, deworming, flea_treatment, medical_history,
                 sterilised, sterilise_date, sterilise_clinic, sterilise_vet,
-                insurance, pet_photo_path, cert_paths
-            ) VALUES (
+                insurance, pet_photo_path, cert_paths, clinic_id
+                            %s,%s,%s,%s,%s,%s,%s,%s,%s,
+                %s,%s,%s,%s,%s,%s,%s,
+                %s,%s,%s,%s,
+                %s,%s,%s,%s,
+                %s,%s,%s) VALUES (
                 %s,%s,%s,%s,%s,%s,%s,%s,%s,
                 %s,%s,%s,%s,%s,%s,%s,
                 %s,%s,%s,%s,
                 %s,%s,%s,%s,
-                %s,%s,%s
+                %s,%s,%s,%s
             ) RETURNING vetovo_id
         """, (
             vetovo_id,
@@ -187,7 +191,8 @@ def create_pet():
             data.get("sterilise_vet", ""),
             psycopg2.extras.Json(data.get("insurance", {})),
             pet_photo_path,
-            psycopg2.extras.Json(cert_paths)
+            psycopg2.extras.Json(cert_paths),
+            data.get("clinic_id", None)
         ))
 
         result = cur.fetchone()
@@ -332,6 +337,61 @@ def admin_get_pets():
                 "created_at": r[8].isoformat() if r[8] else None
             })
         return jsonify(pets)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/clinics/register", methods=["POST"])
+def register_clinic():
+    try:
+        data = request.get_json()
+        clinic_name = data.get("clinic_name", "").strip()
+        doctor_name = data.get("doctor_name", "").strip()
+        whatsapp = data.get("whatsapp", "").strip()
+        city = data.get("city", "").strip()
+        address = data.get("address", "").strip()
+        practice_type = data.get("practice_type", "")
+        years_in_practice = data.get("years_in_practice", "")
+
+        if not all([clinic_name, doctor_name, whatsapp, city, address]):
+            return jsonify({"error": "missing_fields"}), 400
+
+        import uuid
+        clinic_id = "CLC-" + uuid.uuid4().hex[:8].upper()
+
+        conn = get_db()
+        cur = conn.cursor()
+        try:
+            cur.execute("""
+                INSERT INTO clinics (clinic_id, clinic_name, doctor_name, whatsapp, city, address, practice_type, years_in_practice)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (clinic_id, clinic_name, doctor_name, whatsapp, city, address, practice_type, years_in_practice))
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            if "unique" in str(e).lower():
+                return jsonify({"error": "duplicate"}), 200
+            raise e
+        finally:
+            cur.close()
+            conn.close()
+
+        return jsonify({"clinic_id": clinic_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/clinics/<clinic_id>", methods=["GET"])
+def get_clinic(clinic_id):
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("SELECT clinic_id, clinic_name, doctor_name, city FROM clinics WHERE clinic_id = %s", (clinic_id,))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        if not row:
+            return jsonify({"error": "not_found"}), 404
+        return jsonify({"clinic_id": row[0], "clinic_name": row[1], "doctor_name": row[2], "city": row[3]})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
