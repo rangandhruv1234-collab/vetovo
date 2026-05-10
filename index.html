@@ -34,6 +34,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .nav-right{font-size:13px;color:var(--grey);font-weight:500}
 .nav-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--orange);margin-right:6px;animation:blink 2s ease-in-out infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+/* CLINIC BANNER */
+.clinic-banner{display:none;background:var(--orange-light);border-bottom:1px solid var(--orange-mid);padding:10px 48px;text-align:center;position:fixed;top:64px;left:0;right:0;z-index:99}
+.clinic-banner.show{display:block}
+.clinic-banner-text{font-size:13px;color:var(--black);font-weight:500}
+.clinic-banner-text strong{color:var(--orange);font-weight:700}
+
 .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px 60px;position:relative;z-index:1;text-align:center}
 .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--orange);margin-bottom:24px;opacity:0;animation:fadeUp 0.7s ease 0.1s forwards}
 .hero-eyebrow-line{width:24px;height:1.5px;background:var(--orange)}
@@ -222,6 +228,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   </a>
   <div class="nav-right"><span class="nav-dot"></span>India's Pet Health Platform</div>
 </nav>
+<div class="clinic-banner" id="clinicBanner"><div class="clinic-banner-text">You are registering at <strong id="clinicBannerName"></strong></div></div>
 
 <section class="hero" id="hero">
   <div class="hero-eyebrow"><div class="hero-eyebrow-line"></div>India's first pet health identity<div class="hero-eyebrow-line"></div></div>
@@ -1085,7 +1092,7 @@ function printCert() {
 
   var page1 = '<div class="hc-page">'
     + '<header class="hc-head">'
-      + '<div class="hc-wm"><span class="hc-brand">Vetovo</span><span class="hc-tagline">&mdash; Pet Health Registry &middot; by Animitr</span></div>'
+      + '<div class="hc-wm"><span class="hc-brand">Vetovo</span><span class="hc-tagline">&mdash; Pet Health Registry &middot; by Animitr</span>' + (_clinicName ? '<span class="hc-tagline" style="margin-left:8px;color:var(--orange)">· ' + _clinicName + '</span>' : '') + '</div>'
       + '<div class="hc-dm"><span class="hc-doctype">Pet Health Card</span><span class="hc-uid">' + esc(d.uid) + '</span></div>'
     + '</header>'
     + '<section class="hc-sub">'
@@ -1301,6 +1308,33 @@ function copyLnk(){
   var url=uid?'https://vetovo.in/pets/'+uid:'https://vetovo.in';
   navigator.clipboard.writeText(url).then(function(){btn.textContent='Copied';setTimeout(function(){btn.textContent='Copy link';},2000);}).catch(function(){var ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);btn.textContent='Copied';setTimeout(function(){btn.textContent='Copy link';},2000);});
 }
+
+
+// ── CLINIC DETECTION ──
+var _clinicId = '';
+var _clinicName = '';
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var cid = params.get('clinic');
+  if (!cid) return;
+  fetch('https://vetovo.in/api/clinics/' + cid)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.error) return;
+      _clinicId = data.clinic_id;
+      _clinicName = data.clinic_name;
+      var banner = document.getElementById('clinicBanner');
+      var bannerName = document.getElementById('clinicBannerName');
+      if (banner && bannerName) {
+        bannerName.textContent = data.clinic_name;
+        banner.classList.add('show');
+        // Push hero down to account for banner
+        var hero = document.querySelector('.hero');
+        if (hero) hero.style.paddingTop = '140px';
+      }
+    })
+    .catch(function() {});
+})();
 
 buildDots();v1();v2();v3();setDateLimits();
 </script>
