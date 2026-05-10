@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vetovo — Partner Clinic Registration</title>
+<meta name="description" content="Register your clinic on Vetovo and give every pet owner a digital health card with your clinic's name on it.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23FF6B35'/><text y='.9em' font-size='72' x='12'>V</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --orange:#FF6B35;--orange-light:#FFF3EE;--orange-mid:#FFD4C2;--orange-dark:#E55A26;
+  --black:#0A0A0A;--grey:#6B7280;--grey-light:#F9FAFB;--border:#F0E8E3;
+  --white:#FFFFFF;--card:#FFF8F5;--red:#DC2626;--red-light:#FEF2F2;
+  --green:#16A34A;--green-light:#F0FDF4;--green-mid:#BBF7D0;
+  --radius:14px;--radius-sm:10px;
+  --shadow:0 2px 16px rgba(255,107,53,0.08);--shadow-md:0 8px 32px rgba(255,107,53,0.14);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--black);min-height:100vh;overflow-x:hidden}
+
+/* NAV — identical to vetovo */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;background:rgba(255,255,255,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-mark{width:34px;height:34px;border-radius:10px;background:var(--orange);display:flex;align-items:center;justify-content:center}
+.logo-mark svg{width:18px;height:18px;fill:white}
+.logo-name{font-size:18px;font-weight:700;color:var(--black);letter-spacing:-0.02em}
+.logo-by{font-size:11px;color:var(--grey);font-weight:400;margin-left:2px}
+.nav-right{font-size:13px;color:var(--grey);font-weight:500}
+.nav-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--orange);margin-right:6px;animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* HERO */
+.hero{padding:120px 24px 48px;text-align:center;max-width:640px;margin:0 auto}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--orange);margin-bottom:20px;opacity:0;animation:fadeUp 0.7s ease 0.1s forwards}
+.hero-eyebrow-line{width:24px;height:1.5px;background:var(--orange)}
+.hero-h1{font-size:clamp(32px,5vw,52px);font-weight:800;line-height:1.05;letter-spacing:-0.03em;margin-bottom:16px;opacity:0;animation:fadeUp 0.7s ease 0.2s forwards}
+.hero-h1 .accent{color:var(--orange)}
+.hero-sub{font-size:15px;color:var(--grey);line-height:1.7;max-width:480px;margin:0 auto 40px;opacity:0;animation:fadeUp 0.7s ease 0.3s forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* BENEFITS STRIP */
+.benefit-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:32px;opacity:0;animation:fadeUp 0.7s ease 0.35s forwards}
+.benefit-card{background:var(--white);padding:20px 22px;text-align:left;position:relative;transition:background 0.2s}
+.benefit-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--orange);transform:scaleY(0);transform-origin:bottom;transition:transform 0.25s}
+.benefit-card:hover{background:var(--card)}
+.benefit-card:hover::before{transform:scaleY(1)}
+.benefit-num{font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--orange);margin-bottom:6px}
+.benefit-title{font-size:13px;font-weight:600;color:var(--black);line-height:1.4;margin-bottom:3px}
+.benefit-sub{font-size:12px;color:var(--grey);margin-top:3px;line-height:1.4}
+
+
+/* CTA */
+.cta-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;opacity:0;animation:fadeUp 0.7s ease 0.45s forwards;margin-bottom:48px}
+.cta-btn{display:inline-flex;align-items:center;gap:12px;background:var(--orange);color:white;padding:16px 36px;border-radius:60px;font-size:16px;font-weight:700;font-family:'DM Sans',sans-serif;border:none;cursor:pointer;letter-spacing:-0.01em;box-shadow:0 4px 24px rgba(255,107,53,0.35);transition:all 0.25s ease}
+.cta-btn:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 10px 36px rgba(255,107,53,0.45)}
+.cta-arrow{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:13px;transition:transform 0.25s}
+.cta-btn:hover .cta-arrow{transform:translateX(3px)}
+.cta-trust{display:flex;align-items:center;gap:20px;font-size:12px;color:var(--grey);flex-wrap:wrap;justify-content:center}
+.cta-trust-item{display:flex;align-items:center;gap:5px}
+.cta-trust-check{color:var(--orange);font-weight:700;font-size:13px}
+
+/* FORM AREA */
+#form-area{max-width:640px;margin:0 auto;padding:0 24px 80px;opacity:0;animation:fadeUp 0.7s ease 0.4s forwards}
+.section-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:16px}
+.section-head{margin-bottom:24px}
+.section-label{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--orange);margin-bottom:6px}
+.section-title{font-size:20px;font-weight:700;letter-spacing:-0.02em;color:var(--black)}
+.section-desc{font-size:13px;color:var(--grey);margin-top:4px;line-height:1.5}
+.field-grid{display:grid;gap:14px}
+.field-grid.two{grid-template-columns:1fr 1fr}
+@media(max-width:540px){.field-grid.two{grid-template-columns:1fr}.hero-h1{font-size:28px}nav{padding:0 20px}.benefit-strip{display:none}.hero{padding:100px 20px 32px}.cta-btn{padding:14px 28px;font-size:15px}}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12px;font-weight:600;color:var(--black);letter-spacing:0.01em}
+.field label .opt{color:var(--grey);font-weight:400;margin-left:4px}
+.field input,.field select,.field textarea{padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--grey-light);font-size:14px;font-family:'DM Sans',sans-serif;color:var(--black);outline:none;transition:all 0.2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--orange);background:var(--white);box-shadow:0 0 0 3px rgba(255,107,53,0.1)}
+.field input.err,.field select.err{border-color:var(--red);background:var(--red-light)}
+.field-err{font-size:11px;color:var(--red);margin-top:2px;display:none}
+.field-err.show{display:block}
+.field-note{font-size:11px;color:var(--grey);margin-top:2px}
+
+/* DR PREFIX */
+.dr-row{display:flex;gap:8px}
+.dr-select{width:80px;flex-shrink:0;padding:12px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--grey-light);font-size:14px;font-family:'DM Sans',sans-serif;color:var(--black);outline:none;transition:all 0.2s;cursor:pointer}
+.dr-select:focus{border-color:var(--orange);background:var(--white);box-shadow:0 0 0 3px rgba(255,107,53,0.1)}
+.dr-input{flex:1}
+
+/* SUBMIT BTN */
+.submit-btn{width:100%;padding:15px;background:var(--orange);color:white;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:-0.01em;box-shadow:0 4px 16px rgba(255,107,53,0.3);transition:all 0.2s;margin-top:6px}
+.submit-btn:hover{background:var(--orange-dark);transform:translateY(-1px)}
+.submit-btn:disabled{background:var(--border);color:var(--grey);box-shadow:none;transform:none;cursor:not-allowed}
+.submit-btn.loading{opacity:0.6;cursor:not-allowed;pointer-events:none}
+
+/* SUCCESS STATE */
+#success-area{display:none;max-width:640px;margin:0 auto;padding:0 24px 80px}
+.success-card{background:var(--white);border:1.5px solid var(--orange-mid);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-md)}
+.success-top{background:var(--orange);padding:28px 28px 24px;text-align:center}
+.success-icon{font-size:40px;margin-bottom:12px}
+.success-title{font-size:22px;font-weight:800;color:white;letter-spacing:-0.02em;margin-bottom:4px}
+.success-sub{font-size:13px;color:rgba(255,255,255,0.8);line-height:1.5}
+.success-body{padding:28px}
+.success-clinic-name{font-size:18px;font-weight:800;color:var(--black);letter-spacing:-0.02em;margin-bottom:4px}
+.success-clinic-meta{font-size:12px;color:var(--grey);line-height:1.6;margin-bottom:24px}
+
+/* QR SECTION */
+.qr-section{text-align:center;padding:24px;background:var(--card);border:1px solid var(--orange-mid);border-radius:var(--radius-sm);margin-bottom:20px}
+.qr-label{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--orange);margin-bottom:16px}
+#qrcode{display:flex;justify-content:center;margin-bottom:12px}
+#qrcode canvas{border-radius:8px;border:3px solid var(--orange)}
+.qr-url{font-size:11px;color:var(--grey);word-break:break-all;margin-top:4px;font-family:monospace}
+
+/* ACTION BTNS */
+.action-row{display:flex;gap:10px;margin-top:4px}
+.action-btn{flex:1;padding:12px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s}
+.a-dl{background:var(--black);color:white}
+.a-dl:hover{background:#222}
+.a-wa{background:#25D366;color:white}
+.a-wa:hover{background:#1ab855}
+.a-copy{background:var(--border);color:var(--black)}
+.a-copy:hover{background:#D0D7DE}
+
+.success-note{padding:14px;border-radius:var(--radius-sm);background:var(--orange-light);border:1px solid var(--orange-mid);margin-top:16px}
+.success-note-title{font-size:12px;font-weight:700;color:var(--orange);margin-bottom:3px}
+.success-note-text{font-size:12px;color:var(--grey);line-height:1.5}
+
+/* DUPLICATE ERROR */
+.dup-error{display:none;padding:16px;border-radius:var(--radius-sm);background:var(--red-light);border:1px solid #FECACA;margin-top:12px}
+.dup-error.show{display:block}
+.dup-error-title{font-size:13px;font-weight:700;color:var(--red);margin-bottom:3px}
+.dup-error-text{font-size:12px;color:#7F1D1D;line-height:1.5}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="https://vetovo.in" class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+    </div>
+    <span class="logo-name">Vetovo<span class="logo-by"> for Clinics</span></span>
+  </a>
+  <div class="nav-right"><span class="nav-dot"></span>Partner Registration</div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow"><div class="hero-eyebrow-line"></div>For Vet Clinics<div class="hero-eyebrow-line"></div></div>
+  <h1 class="hero-h1">Your clinic on every <span class="accent">health card</span></h1>
+  <p class="hero-sub">Register once. Get a QR code for your reception desk. Every pet owner who scans it gets a digital health card with your clinic's name on it — permanently.</p>
+
+  <div class="benefit-strip">
+    <div class="benefit-card">
+      <div class="benefit-num">01</div>
+      <div class="benefit-title">Your name on every card</div>
+      <div class="benefit-sub">Every health card generated from your clinic carries your brand</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-num">02</div>
+      <div class="benefit-title">One QR, forever</div>
+      <div class="benefit-sub">Print it once, place it on your desk. No app, no login needed</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-num">03</div>
+      <div class="benefit-title">Free forever</div>
+      <div class="benefit-sub">No cost, no subscription. Just a professional edge for your clinic</div>
+    </div>
+  </div>
+
+  <div class="cta-wrap">
+    <button class="cta-btn" onclick="var f=document.getElementById('form-area');f.style.display='block';f.style.opacity='0';f.style.animation='fadeUp 0.5s ease forwards';setTimeout(function(){f.scrollIntoView({behavior:'smooth'})},50)">
+      Register Your Clinic
+      <div class="cta-arrow">→</div>
+    </button>
+    <div class="cta-trust">
+      <div class="cta-trust-item"><span class="cta-trust-check">✓</span> Free forever</div>
+      <div class="cta-trust-item"><span class="cta-trust-check">✓</span> QR code instantly</div>
+      <div class="cta-trust-item"><span class="cta-trust-check">✓</span> 2 minutes to register</div>
+    </div>
+  </div>
+</div>
+
+<!-- FORM -->
+<div id="form-area" style="display:none">
+  <div class="section-card">
+    <div class="section-head">
+      <div class="section-label">Clinic Registration</div>
+      <div class="section-title">Tell us about your clinic</div>
+      <div class="section-desc">Takes 2 minutes. You'll get a unique QR code instantly.</div>
+    </div>
+
+    <div class="field-grid">
+      <!-- Clinic Name -->
+      <div class="field">
+        <label>Clinic name</label>
+        <input type="text" id="clinicName" maxlength="100" placeholder="e.g. Apollo Pet Care" autocomplete="organization" oninput="validate()">
+        <div class="field-err" id="clinicNameErr">Clinic name is required</div>
+      </div>
+
+      <!-- Doctor Name -->
+      <div class="field">
+        <label>Doctor / Owner name</label>
+        <div class="dr-row">
+          <select class="dr-select" id="drPrefix">
+            <option value="Dr.">Dr.</option>
+            <option value="Mr.">Mr.</option>
+            <option value="Ms.">Ms.</option>
+            <option value="Mrs.">Mrs.</option>
+          </select>
+          <input type="text" class="dr-input" id="doctorName" maxlength="80" placeholder="Full name" autocomplete="name" oninput="validate()">
+        </div>
+        <div class="field-err" id="doctorNameErr">Doctor name is required</div>
+      </div>
+
+      <!-- WhatsApp -->
+      <div class="field">
+        <label>WhatsApp number</label>
+        <input type="tel" id="clinicWa" maxlength="10" placeholder="10-digit mobile number" inputmode="numeric" autocomplete="tel" oninput="validate()">
+        <div class="field-note">We'll use this to send you clinic updates</div>
+        <div class="field-err" id="clinicWaErr">Enter a valid 10-digit WhatsApp number</div>
+      </div>
+
+      <!-- City -->
+      <div class="field">
+        <label>City</label>
+        <input type="text" id="clinicCity" maxlength="60" placeholder="e.g. New Delhi" autocomplete="address-level2" oninput="validate()">
+        <div class="field-err" id="clinicCityErr">City is required</div>
+      </div>
+
+      <!-- Full Address -->
+      <div class="field" style="grid-column:1/-1">
+        <label>Full address <span style="font-size:11px;color:var(--grey);font-weight:400">(branch-specific)</span></label>
+        <input type="text" id="clinicAddr" maxlength="200" placeholder="Shop no., street, locality, pincode" autocomplete="street-address" oninput="validate()">
+        <div class="field-note">Each branch needs a separate registration</div>
+        <div class="field-err" id="clinicAddrErr">Address is required</div>
+      </div>
+
+      <!-- Type of Practice -->
+      <div class="field">
+        <label>Type of practice</label>
+        <select id="clinicType" onchange="validate()">
+          <option value="">Select</option>
+          <option value="Small Animals (Pets)">Small Animals (Pets)</option>
+          <option value="Large Animals (Livestock)">Large Animals (Livestock)</option>
+          <option value="Wildlife & Exotic">Wildlife & Exotic</option>
+          <option value="Multi-specialty">Multi-specialty</option>
+        </select>
+        <div class="field-err" id="clinicTypeErr">Please select type of practice</div>
+      </div>
+
+      <!-- Years in Practice -->
+      <div class="field">
+        <label>Years in practice</label>
+        <select id="clinicYears" onchange="validate()">
+          <option value="">Select</option>
+          <option value="Less than 1 year">Less than 1 year</option>
+          <option value="1–3 years">1–3 years</option>
+          <option value="3–5 years">3–5 years</option>
+          <option value="5–10 years">5–10 years</option>
+          <option value="10–20 years">10–20 years</option>
+          <option value="20+ years">20+ years</option>
+        </select>
+        <div class="field-err" id="clinicYearsErr">Please select years in practice</div>
+      </div>
+    </div>
+
+    <div class="dup-error" id="dupError">
+      <div class="dup-error-title">Clinic already registered</div>
+      <div class="dup-error-text">A clinic with this name and address is already on Vetovo. If this is a different branch, please enter the specific branch address. If you need help, contact us on WhatsApp.</div>
+    </div>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" onclick="submitClinic()" disabled>Register & Get QR Code →</button>
+</div>
+
+<!-- SUCCESS -->
+<div id="success-area">
+  <div class="success-card">
+    <div class="success-top">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">You're on Vetovo!</div>
+      <div class="success-sub">Your clinic QR code is ready. Print it and place it at your reception desk.</div>
+    </div>
+    <div class="success-body">
+      <div class="success-clinic-name" id="sClinicName">—</div>
+      <div class="success-clinic-meta" id="sClinicMeta">—</div>
+
+      <div class="qr-section">
+        <div class="qr-label">Your Clinic QR Code</div>
+        <div id="qrcode"></div>
+        <div class="qr-url" id="qrUrl">—</div>
+      </div>
+
+      <div class="action-row">
+        <button class="action-btn a-dl" onclick="downloadQR()">⬇ Download QR</button>
+        <button class="action-btn a-wa" onclick="shareWa()">Share on WhatsApp</button>
+        <button class="action-btn a-copy" id="copyBtn" onclick="copyLink()">Copy link</button>
+      </div>
+
+      <div class="success-note">
+        <div class="success-note-title">📋 How to use your QR code</div>
+        <div class="success-note-text">Print this QR and place it on your reception desk. When a pet owner scans it, they'll be taken directly to the Vetovo health card form — and their PDF will have your clinic's name on it automatically.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var clinicUrl = '';
+var clinicData = {};
+
+function validate() {
+  var name = document.getElementById('clinicName').value.trim();
+  var doctor = document.getElementById('doctorName').value.trim();
+  var wa = document.getElementById('clinicWa').value.trim();
+  var city = document.getElementById('clinicCity').value.trim();
+  var addr = document.getElementById('clinicAddr').value.trim();
+  var type = document.getElementById('clinicType').value;
+  var years = document.getElementById('clinicYears').value;
+
+  var valid = name && doctor && wa.length === 10 && /^\d{10}$/.test(wa) && city && addr && type && years;
+  document.getElementById('submitBtn').disabled = !valid;
+}
+
+function submitClinic() {
+  var btn = document.getElementById('submitBtn');
+
+  // Clear errors
+  document.getElementById('dupError').classList.remove('show');
+  ['clinicName','doctorName','clinicWa','clinicCity','clinicAddr','clinicType','clinicYears'].forEach(function(id) {
+    var err = document.getElementById(id + 'Err');
+    if (err) err.classList.remove('show');
+    var inp = document.getElementById(id);
+    if (inp) inp.classList.remove('err');
+  });
+
+  var prefix = document.getElementById('drPrefix').value;
+  var name = document.getElementById('clinicName').value.trim();
+  var doctor = prefix + ' ' + document.getElementById('doctorName').value.trim();
+  var wa = document.getElementById('clinicWa').value.trim();
+  var city = document.getElementById('clinicCity').value.trim();
+  var addr = document.getElementById('clinicAddr').value.trim();
+  var type = document.getElementById('clinicType').value;
+  var years = document.getElementById('clinicYears').value;
+
+  // Validate
+  var errors = false;
+  if (!name) { showErr('clinicName', 'clinicNameErr'); errors = true; }
+  if (!document.getElementById('doctorName').value.trim()) { showErr('doctorName', 'doctorNameErr'); errors = true; }
+  if (!wa || wa.length !== 10 || !/^\d{10}$/.test(wa)) { showErr('clinicWa', 'clinicWaErr'); errors = true; }
+  if (!city) { showErr('clinicCity', 'clinicCityErr'); errors = true; }
+  if (!addr) { showErr('clinicAddr', 'clinicAddrErr'); errors = true; }
+  if (!type) { showErr('clinicType', 'clinicTypeErr'); errors = true; }
+  if (!years) { showErr('clinicYears', 'clinicYearsErr'); errors = true; }
+  if (errors) return;
+
+  btn.classList.add('loading');
+  btn.textContent = 'Registering...';
+
+  fetch('https://vetovo.in/api/clinics/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      clinic_name: name,
+      doctor_name: doctor,
+      whatsapp: wa,
+      city: city,
+      address: addr,
+      practice_type: type,
+      years_in_practice: years
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    btn.classList.remove('loading');
+    btn.textContent = 'Register & Get QR Code →';
+
+    if (data.error === 'duplicate') {
+      document.getElementById('dupError').classList.add('show');
+      return;
+    }
+    if (data.error) {
+      alert('Something went wrong. Please try again.');
+      return;
+    }
+
+    clinicData = { name: name, doctor: doctor, city: city, type: type, years: years, id: data.clinic_id };
+    clinicUrl = 'https://vetovo.in/?clinic=' + encodeURIComponent(data.clinic_id);
+    showSuccess(data.clinic_id);
+  })
+  .catch(function() {
+    btn.classList.remove('loading');
+    btn.textContent = 'Register & Get QR Code →';
+    alert('Connection error. Please check your internet and try again.');
+  });
+}
+
+function showErr(inputId, errId) {
+  var inp = document.getElementById(inputId);
+  var err = document.getElementById(errId);
+  if (inp) inp.classList.add('err');
+  if (err) err.classList.add('show');
+}
+
+function showSuccess(clinicId) {
+  document.getElementById('form-area').style.display = 'none';
+  document.getElementById('success-area').style.display = 'block';
+  document.getElementById('success-area').style.opacity = '0';
+  document.getElementById('success-area').style.animation = 'fadeUp 0.5s ease forwards';
+
+  document.getElementById('sClinicName').textContent = clinicData.name;
+  document.getElementById('sClinicMeta').innerHTML =
+    clinicData.doctor + ' &nbsp;·&nbsp; ' + clinicData.city + '<br>' +
+    clinicData.type + ' &nbsp;·&nbsp; ' + clinicData.years;
+  document.getElementById('qrUrl').textContent = clinicUrl;
+
+  new QRCode(document.getElementById('qrcode'), {
+    text: clinicUrl,
+    width: 180,
+    height: 180,
+    colorDark: '#0A0A0A',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function downloadQR() {
+  var canvas = document.querySelector('#qrcode canvas');
+  if (!canvas) return;
+
+  // Create a larger canvas with padding and clinic name
+  var out = document.createElement('canvas');
+  out.width = 320;
+  out.height = 380;
+  var ctx = out.getContext('2d');
+
+  // White background
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, 320, 380);
+
+  // Orange top bar
+  ctx.fillStyle = '#FF6B35';
+  ctx.fillRect(0, 0, 320, 6);
+
+  // QR code centered
+  ctx.drawImage(canvas, 70, 30, 180, 180);
+
+  // Clinic name
+  ctx.fillStyle = '#0A0A0A';
+  ctx.font = 'bold 15px DM Sans, sans-serif';
+  ctx.textAlign = 'center';
+  var nameLines = wrapText(ctx, clinicData.name, 280, 15);
+  var y = 235;
+  nameLines.forEach(function(line) { ctx.fillText(line, 160, y); y += 20; });
+
+  // Scan instruction
+  ctx.fillStyle = '#6B7280';
+  ctx.font = '11px DM Sans, sans-serif';
+  ctx.fillText('Scan to create your pet\'s digital health card', 160, y + 10);
+
+  // Vetovo branding
+  ctx.fillStyle = '#FF6B35';
+  ctx.font = 'bold 13px DM Sans, sans-serif';
+  ctx.fillText('VETOVO', 160, 355);
+  ctx.fillStyle = '#6B7280';
+  ctx.font = '10px DM Sans, sans-serif';
+  ctx.fillText('vetovo.in', 160, 370);
+
+  // Orange bottom bar
+  ctx.fillStyle = '#FF6B35';
+  ctx.fillRect(0, 374, 320, 6);
+
+  var link = document.createElement('a');
+  link.download = 'Vetovo-QR-' + clinicData.name.replace(/\s+/g, '-') + '.png';
+  link.href = out.toDataURL('image/png');
+  link.click();
+}
+
+function wrapText(ctx, text, maxWidth, fontSize) {
+  var words = text.split(' ');
+  var lines = [];
+  var line = '';
+  words.forEach(function(word) {
+    var test = line + (line ? ' ' : '') + word;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  });
+  if (line) lines.push(line);
+  return lines;
+}
+
+function shareWa() {
+  var msg = 'Register your pet\'s digital health card at ' + clinicData.name + ' — ' + clinicUrl;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function copyLink() {
+  var btn = document.getElementById('copyBtn');
+  navigator.clipboard.writeText(clinicUrl).then(function() {
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy link'; }, 2000);
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = clinicUrl;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy link'; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
